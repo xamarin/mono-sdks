@@ -5,7 +5,7 @@
     android:versionName="1.0">
   <uses-sdk android:minSdkVersion="14" />
   <application android:label="@string/app_name" android:debuggable="true">
-    <activity android:name="org.mono.android.main.AndroidRunner" android:label="@string/app_name">
+    <activity android:name="org.mono.android.AndroidRunner" android:label="@string/app_name">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
           <category android:name="android.intent.category.LAUNCHER" />

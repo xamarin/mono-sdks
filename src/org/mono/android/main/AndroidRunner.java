@@ -19,9 +19,10 @@ import android.content.pm.ApplicationInfo;
 import android.content.Context;
 import android.app.Activity;
 import android.os.Bundle;
-import android.widget.TextView;
 import android.content.res.AssetManager;
 import android.util.Log;
+import android.widget.*;
+import android.view.*;
 
 import java.io.File;
 import java.io.InputStream;
@@ -29,21 +30,29 @@ import java.io.OutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.mono.android.AndroidTestRunner.R;
+
 public class AndroidRunner extends Activity
 {
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-		setupRuntime (this);
 
-        /* Create a TextView and set its content.
-         * the text is retrieved by calling a native
-         * function.
-         */
-        TextView  tv = new TextView(this);
-        tv.setText ("whatever");
-        setContentView(tv);
+		LayoutInflater inflater = (LayoutInflater)this.getSystemService (Context.LAYOUT_INFLATER_SERVICE);
+		View view = inflater.inflate (R.layout.main, null, false);
+		
+		setContentView (view);
+		Button b = (Button)findViewById (R.id.button);
+		final TextView tv = (TextView)findViewById (R.id.text);
+
+        b.setOnClickListener(new View.OnClickListener () {
+	          public void onClick(View v) {
+				  tv.setText (send ("run", "tests"));
+	          }
+	      });
+
+		setupRuntime (this);
     }
 
 	void copy (InputStream in, OutputStream out) throws IOException {
@@ -71,6 +80,7 @@ public class AndroidRunner extends Activity
 			Log.w ("MONO", "WTF", e);
 		}
 	}
+
 	public void setupRuntime (Context context) {
 		String filesDir     = context.getFilesDir ().getAbsolutePath ();
 		String cacheDir     = context.getCacheDir ().getAbsolutePath ();
@@ -86,9 +96,8 @@ public class AndroidRunner extends Activity
 
 		copyAssetDir (am, "asm", assemblyDir);
 
-
 		init (filesDir, cacheDir, dataDir, assemblyDir);
-		update ("foo");
+		execMain ();
 	}
 
 	static String getNativeLibraryPath (Context context)
@@ -103,9 +112,9 @@ public class AndroidRunner extends Activity
 		return ainfo.dataDir + "/lib";
 	}
 
-    public native void init(String path0, String path1, String path2, String path3);
-	
-    public native String update(String value);
+    native void init(String path0, String path1, String path2, String path3);
+	native int execMain ();
+	native String send (String key, String value);
 
     static {
         System.loadLibrary("runtime-bootstrap");

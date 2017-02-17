@@ -1,13 +1,32 @@
 TOP=..
 MONO_PATH=$(TOP)/external/mono
 MONO_FRAMEWORK=/Library/Frameworks/Mono.framework/Versions/Current/
-# NDK_PLATFORM_ROOT=/Users/kumpera/android-ndk-r11c
-# TOOLCHAIN_ROOT=$(NDK_PLATFORM_ROOT)
-# TOOLCHAIN_NAME=arm-linux-androideabi-4.9
+
+
+USE_NDK=false
+IS_RELEASE=true
+
+ifeq ($(USE_NDK),true)
+
+NDK_PLATFORM_ROOT=/Users/kumpera/android-ndk-r11c
+TOOLCHAIN_ROOT=$(NDK_PLATFORM_ROOT)
+TOOLCHAIN_NAME=arm-linux-androideabi-4.9
+TOOLCHAIN_BIN_DIR=$(TOOLCHAIN)/prebuilt/darwin-x86_64/bin
+CC_NAME=gcc
+CXX_NAME=g++
+EXTRA_CC_FLAG=--sysroot=$(SYSROOT)/arch-arm -nostdlib
+EXTRA_DEPS=setup-toolchain
+else
 
 NDK_PLATFORM_ROOT=/Users/kumpera/android-toolchain/ndk
 TOOLCHAIN_ROOT=/Users/kumpera/android-toolchain
 TOOLCHAIN_NAME=arm-linux-androideabi-clang
+TOOLCHAIN_BIN_DIR=$(TOOLCHAIN)/bin
+CC_NAME=clang
+CXX_NAME=clang++
+EXTRA_CC_FLAG=
+endif
+
 
 TOOLCHAIN=$(TOOLCHAIN_ROOT)/toolchains/$(TOOLCHAIN_NAME)
 NDK_PLATFORM=$(NDK_PLATFORM_ROOT)/platforms/android-4
@@ -29,29 +48,23 @@ COMMON_CONFIGURE_FLAGS= \
 			--with-btls-android-ndk=$(NDK_PLATFORM_ROOT) \
 			mono_cv_uscore=yes			
 
-# REL_FLAGS=-g -O2
+ifeq ($(IS_RELEASE),true)
+REL_FLAGS=-g -O2
+else
 REL_FLAGS=-ggdb3 -O0
+endif
+
 
 COMMON_CFLAGS=$(REL_FLAGS) -fno-omit-frame-pointer
 COMMON_LDFLAGS=-ldl -lm -llog -lc -lgcc
-# SECURITY_CFLAGS += -Wl,-z,now -Wl,-z,relro -Wl,-z,noexecstack -fstack-protector -Qunused-arguments
 SECURITY_CFLAGS = -Wl,-z,now -Wl,-z,relro -Wl,-z,noexecstack -fstack-protector
-# SECURITY_LDFLAGS = -z now -z relro -z noexecstack
 
 ARM_CFLAGS=$(COMMON_CFLAGS) -D__POSIX_VISIBLE=201002 -DSK_RELEASE -DNDEBUG -UDEBUG -fpic
 ARM_CXXFLAGS=$(ARM_CFLAGS)
-# ARM_CXXFLAGS=-I$(SYSROOT)/arch-arm/usr/include/
-ARM_CC=--sysroot=$(SYSROOT)/arch-arm -nostdlib
 ARM_CPP=-I$(NDK_PLATFORM)/arch-arm/usr/include/
 ARM_LDFLAGS=$(COMMON_LDFLAGS) -Wl,--fix-cortex-a8 \
 			-Wl,-rpath-link=$(NDK_PLATFORM)/arch-arm/usr/lib,-dynamic-linker=/system/bin/linker \
 			-L$(NDK_PLATFORM)/arch-arm/usr/lib
-
-
-TARGET_CONFIGURE_FLAGS_old= \
-			--enable-minimal=ssa,portability,attach,verifier,full_messages,sgen_remset,sgen_marksweep_par,sgen_marksweep_fixed,sgen_marksweep_fixed_par,sgen_copying,logging,security,shared_handles \
-			--disable-executables --disable-mcs-build --host=armv5-linux-androideabi	\
-			$(COMMON_CONFIGURE_FLAGS)
 
 TARGET_CONFIGURE_FLAGS= \
 	--cache-file=../armeabi-v7a.config.cache \
@@ -63,33 +76,26 @@ TARGET_CONFIGURE_FLAGS= \
 	--disable-mcs-build --disable-executables --disable-iconv \
 	--enable-dynamic-btls --with-btls-android-ndk=$(NDK_PLATFORM_ROOT)
 
-# CC_TOOLCHAIN=$(TOOLCHAIN)
-# THE_CC=$(CC_TOOLCHAIN)/bin/$(TARGET_NAME)-gcc
-# THE_CXX=$(CC_TOOLCHAIN)/bin/$(TARGET_NAME)-g++
-
-CC_TOOLCHAIN=$(TOOLCHAIN)
-THE_CC=$(CC_TOOLCHAIN)/bin/$(TARGET_NAME)-clang
-THE_CXX=$(CC_TOOLCHAIN)/bin/$(TARGET_NAME)-clang++
-
+THE_CC=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-$(CC_NAME)
+THE_CXX=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-$(CXX_NAME)
 
 TARGET_EXTRA_CFLAGS=-mtune=cortex-a8 -march=armv7-a -mfpu=vfp -mfloat-abi=softfp
 TARGET_CFLAGS=$(ARM_CFLAGS) $(TARGET_EXTRA_CFLAGS) $(SECURITY_CFLAGS) -DMONODROID=1
 TARGET_CXXFLAGS=$(ARM_CXXFLAGS) $(TARGET_EXTRA_CFLAGS) $(SECURITY_CFLAGS) -DMONODROID=1
 TARGET_LDFLAGS=$(ARM_LDFLAGS)
-TARGET_CC=$(THE_CC)
-TARGET_CXX=$(THE_CXX)
-TARGET_CPP=$(TOOLCHAIN)/bin/$(TARGET_NAME)-cpp $(ARM_CPP)
-TARGET_CXXCPP=$(TOOLCHAIN)/bin/$(TARGET_NAME)-cpp $(ARM_CPP)
-TARGET_LD=$(TOOLCHAIN)/bin/$(TARGET_NAME)-ld
-TARGET_AS=$(TOOLCHAIN)/bin/$(TARGET_NAME)-as
-TARGET_AR=$(TOOLCHAIN)/bin/$(TARGET_NAME)-ar
-TARGET_RANLIB=$(TOOLCHAIN)/bin/$(TARGET_NAME)-ranlib
-TARGET_STRIP=$(TOOLCHAIN)/bin/$(TARGET_NAME)-strip
+TARGET_CC=$(THE_CC) $(EXTRA_CC_FLAG)
+TARGET_CXX=$(THE_CXX) $(EXTRA_CC_FLAG)
+TARGET_CPP=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-cpp $(ARM_CPP)
+TARGET_CXXCPP=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-cpp $(ARM_CPP)
+TARGET_LD=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-ld
+TARGET_AS=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-as
+TARGET_AR=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-ar
+TARGET_RANLIB=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-ranlib
+TARGET_STRIP=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-strip
 TARGET_DLLTOOL=""
 TARGET_OBJDUMP="$(TOOLCHAIN)/bin/$(TARGET_NAME)-objdump"
 TARGET_NAME=arm-linux-androideabi
 TARGET_DIR=armv7-android
-
 
 CONFIGURE_ENVIRONMENT = \
 	LDFLAGS="$(TARGET_LDFLAGS)"	\
@@ -114,11 +120,7 @@ $(MONO_PATH)/configure: $(MONO_PATH)/configure.ac
 config-mono: $(MONO_PATH)/configure
 
 echo-config:
-	# mkdir -p $(TARGET_DIR) && \
 	@echo ../$(MONO_PATH)/configure $(CONFIGURE_ENVIRONMENT) $(TARGET_CONFIGURE_FLAGS)
-
-
-# $(CONFIGURE_ENVIRONMENT) ./wrap-configure.sh $(TARGET_DIR) ../$(MONO_PATH)/configure $(TARGET_CONFIGURE_FLAGS)
 
 .stamp-configure-$(TARGET_DIR): $(MONO_PATH)/configure
 	mkdir -p $(TARGET_DIR) &&	\

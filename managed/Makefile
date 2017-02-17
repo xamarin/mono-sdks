@@ -1,18 +1,18 @@
 TOP=..
 
-BCL_DIR=$(TOP)/bcl
+BCL_DIR=$(TOP)/out/bcl
 ASSETS_DIR=$(TOP)/assets/asm
 
-all: .assert_published
+all: .assets_published
 
-
-main.exe: main.cs
+main.exe: main.cs $(BCL_DIR)/mscorlib.dll
 	mcs /nostdlib main.cs -r:$(BCL_DIR)/mscorlib.dll
 
-.assert_published: main.exe
+.assets_published: main.exe $(TOP)/out/libmonosgen-2.0.so
 	mkdir -p $(ASSETS_DIR)
 	cp main.exe $(ASSETS_DIR)
 	cp $(BCL_DIR)/mscorlib.dll $(ASSETS_DIR)
-	touch .assert_published
+	cp $(TOP)/out/libmonosgen-2.0.so $(TOP)/jni/armeabi-v7a/
+	touch .assets_published
 
 	

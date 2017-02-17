@@ -1,30 +1,54 @@
-TOP=..
+TOP=$(CURDIR)/..
 MONO_PATH=$(TOP)/external/mono
 MONO_FRAMEWORK=/Library/Frameworks/Mono.framework/Versions/Current/
 
 
-USE_NDK=false
+USE_NDK=new-style
 IS_RELEASE=true
+
+ifeq ($(USE_NDK),new-style)
+
+foo:
+	@echo $(USE_NDK)
+
+NDK_PLATFORM_ROOT=/Users/kumpera/android-ndk-r11c
+TOOLCHAIN_BIN_DIR=$(TOP)/sdks/toolchains/arm/bin
+CC_NAME=clang
+CXX_NAME=clang++
+EXTRA_CC_FLAG=
+
+setup-toolchain: .stamp-toolchain-arm
+
+.stamp-toolchain-arm:
+	$(NDK_PLATFORM_ROOT)/build/tools/make-standalone-toolchain.sh  --platform=android-4 --arch=arm --install-dir=toolchains/arm --toolchain=arm-linux-androideabi-clang && \
+	touch .stamp-toolchain-arm
+
+else
+foo:
+	@echo bar
+setup-toolchain:
+
 
 ifeq ($(USE_NDK),true)
 
 NDK_PLATFORM_ROOT=/Users/kumpera/android-ndk-r11c
 TOOLCHAIN_ROOT=$(NDK_PLATFORM_ROOT)
 TOOLCHAIN_NAME=arm-linux-androideabi-4.9
-TOOLCHAIN_BIN_DIR=$$(TOOLCHAIN_ROOT)/toolchains/$(TOOLCHAIN_NAME)/prebuilt/darwin-x86_64/bin
+TOOLCHAIN_BIN_DIR=$(TOOLCHAIN_ROOT)/toolchains/$(TOOLCHAIN_NAME)/prebuilt/darwin-x86_64/bin
 CC_NAME=gcc
 CXX_NAME=g++
 EXTRA_CC_FLAG=--sysroot=$(NDK_PLATFORM)/arch-arm -nostdlib
-EXTRA_DEPS=setup-toolchain
+
 else
 
 NDK_PLATFORM_ROOT=/Users/kumpera/android-toolchain/ndk
 TOOLCHAIN_ROOT=/Users/kumpera/android-toolchain
 TOOLCHAIN_NAME=arm-linux-androideabi-clang
-TOOLCHAIN_BIN_DIR=$$(TOOLCHAIN_ROOT)/toolchains/$(TOOLCHAIN_NAME)/bin
+TOOLCHAIN_BIN_DIR=$(TOOLCHAIN_ROOT)/toolchains/$(TOOLCHAIN_NAME)/bin
 CC_NAME=clang
 CXX_NAME=clang++
 EXTRA_CC_FLAG=
+endif
 endif
 
 NDK_PLATFORM=$(NDK_PLATFORM_ROOT)/platforms/android-4
@@ -72,8 +96,12 @@ TARGET_CONFIGURE_FLAGS= \
 	--disable-mcs-build --disable-executables --disable-iconv \
 	--enable-dynamic-btls --with-btls-android-ndk=$(NDK_PLATFORM_ROOT)
 
+TARGET_NAME=arm-linux-androideabi
+TARGET_DIR=armv7-android
+
 THE_CC=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-$(CC_NAME)
 THE_CXX=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-$(CXX_NAME)
+
 
 TARGET_EXTRA_CFLAGS=-mtune=cortex-a8 -march=armv7-a -mfpu=vfp -mfloat-abi=softfp
 TARGET_CFLAGS=$(ARM_CFLAGS) $(TARGET_EXTRA_CFLAGS) $(SECURITY_CFLAGS) -DMONODROID=1
@@ -90,8 +118,6 @@ TARGET_RANLIB=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-ranlib
 TARGET_STRIP=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-strip
 TARGET_DLLTOOL=""
 TARGET_OBJDUMP="$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-objdump"
-TARGET_NAME=arm-linux-androideabi
-TARGET_DIR=armv7-android
 
 CONFIGURE_ENVIRONMENT = \
 	LDFLAGS="$(TARGET_LDFLAGS)"	\
@@ -118,10 +144,10 @@ config-mono: $(MONO_PATH)/configure
 echo-config:
 	@echo ../$(MONO_PATH)/configure $(CONFIGURE_ENVIRONMENT) $(TARGET_CONFIGURE_FLAGS)
 
-.stamp-configure-$(TARGET_DIR): $(MONO_PATH)/configure
+.stamp-configure-$(TARGET_DIR): $(MONO_PATH)/configure .stamp-toolchain-arm
 	mkdir -p $(TARGET_DIR) &&	\
 	pushd $(TARGET_DIR) && \
-	../$(MONO_PATH)/configure $(CONFIGURE_ENVIRONMENT) $(TARGET_CONFIGURE_FLAGS) && \
+	$(MONO_PATH)/configure $(CONFIGURE_ENVIRONMENT) $(TARGET_CONFIGURE_FLAGS) && \
 	popd && \
 	$(TOUCH) $$@
 
@@ -159,4 +185,4 @@ prep-repos:
 	git submodule update
 	(cd external/mono ; git submodule init)
 
-.PHONY: 
+.PHONY:

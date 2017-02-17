@@ -2,7 +2,7 @@ SDK_DIR   = /Users/kumpera/Library/Developer/Xamarin/android-sdk-mac_x86/
 ADB       = $(SDK_DIR)/platform-tools/adb
 ANDROID   = $(SDK_DIR)/tools/android
 ANT       = ant
-NDK_DIR   = /Users/kumpera/android-ndk-r13b
+NDK_DIR   = /Users/kumpera/android-ndk-r11c
 NDK_BUILD = $(NDK_DIR)/ndk-build
 
 PACKAGE   = org.mono.android.AndroidTestRunner

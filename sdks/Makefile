@@ -11,27 +11,23 @@ ifeq ($(USE_NDK),true)
 NDK_PLATFORM_ROOT=/Users/kumpera/android-ndk-r11c
 TOOLCHAIN_ROOT=$(NDK_PLATFORM_ROOT)
 TOOLCHAIN_NAME=arm-linux-androideabi-4.9
-TOOLCHAIN_BIN_DIR=$(TOOLCHAIN)/prebuilt/darwin-x86_64/bin
+TOOLCHAIN_BIN_DIR=$$(TOOLCHAIN_ROOT)/toolchains/$(TOOLCHAIN_NAME)/prebuilt/darwin-x86_64/bin
 CC_NAME=gcc
 CXX_NAME=g++
-EXTRA_CC_FLAG=--sysroot=$(SYSROOT)/arch-arm -nostdlib
+EXTRA_CC_FLAG=--sysroot=$(NDK_PLATFORM)/arch-arm -nostdlib
 EXTRA_DEPS=setup-toolchain
 else
 
 NDK_PLATFORM_ROOT=/Users/kumpera/android-toolchain/ndk
 TOOLCHAIN_ROOT=/Users/kumpera/android-toolchain
 TOOLCHAIN_NAME=arm-linux-androideabi-clang
-TOOLCHAIN_BIN_DIR=$(TOOLCHAIN)/bin
+TOOLCHAIN_BIN_DIR=$$(TOOLCHAIN_ROOT)/toolchains/$(TOOLCHAIN_NAME)/bin
 CC_NAME=clang
 CXX_NAME=clang++
 EXTRA_CC_FLAG=
 endif
 
-
-TOOLCHAIN=$(TOOLCHAIN_ROOT)/toolchains/$(TOOLCHAIN_NAME)
 NDK_PLATFORM=$(NDK_PLATFORM_ROOT)/platforms/android-4
-SYSROOT=$(NDK_PLATFORM)
-
 
 COMMON_CONFIGURE_FLAGS= \
 			--without-ikvm-native \
@@ -93,7 +89,7 @@ TARGET_AR=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-ar
 TARGET_RANLIB=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-ranlib
 TARGET_STRIP=$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-strip
 TARGET_DLLTOOL=""
-TARGET_OBJDUMP="$(TOOLCHAIN)/bin/$(TARGET_NAME)-objdump"
+TARGET_OBJDUMP="$(TOOLCHAIN_BIN_DIR)/$(TARGET_NAME)-objdump"
 TARGET_NAME=arm-linux-androideabi
 TARGET_DIR=armv7-android
 

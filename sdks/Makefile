@@ -2,14 +2,7 @@ TOP=$(CURDIR)/..
 MONO_PATH=$(TOP)/external/mono
 MONO_FRAMEWORK=/Library/Frameworks/Mono.framework/Versions/Current/
 
-
-USE_NDK=new-style
 IS_RELEASE=true
-
-ifeq ($(USE_NDK),new-style)
-
-foo:
-	@echo $(USE_NDK)
 
 NDK_PLATFORM_ROOT=/Users/kumpera/android-ndk-r11c
 TOOLCHAIN_BIN_DIR=$(TOP)/sdks/toolchains/arm/bin
@@ -22,34 +15,6 @@ setup-toolchain: .stamp-toolchain-arm
 .stamp-toolchain-arm:
 	$(NDK_PLATFORM_ROOT)/build/tools/make-standalone-toolchain.sh  --platform=android-4 --arch=arm --install-dir=toolchains/arm --toolchain=arm-linux-androideabi-clang && \
 	touch .stamp-toolchain-arm
-
-else
-foo:
-	@echo bar
-setup-toolchain:
-
-
-ifeq ($(USE_NDK),true)
-
-NDK_PLATFORM_ROOT=/Users/kumpera/android-ndk-r11c
-TOOLCHAIN_ROOT=$(NDK_PLATFORM_ROOT)
-TOOLCHAIN_NAME=arm-linux-androideabi-4.9
-TOOLCHAIN_BIN_DIR=$(TOOLCHAIN_ROOT)/toolchains/$(TOOLCHAIN_NAME)/prebuilt/darwin-x86_64/bin
-CC_NAME=gcc
-CXX_NAME=g++
-EXTRA_CC_FLAG=--sysroot=$(NDK_PLATFORM)/arch-arm -nostdlib
-
-else
-
-NDK_PLATFORM_ROOT=/Users/kumpera/android-toolchain/ndk
-TOOLCHAIN_ROOT=/Users/kumpera/android-toolchain
-TOOLCHAIN_NAME=arm-linux-androideabi-clang
-TOOLCHAIN_BIN_DIR=$(TOOLCHAIN_ROOT)/toolchains/$(TOOLCHAIN_NAME)/bin
-CC_NAME=clang
-CXX_NAME=clang++
-EXTRA_CC_FLAG=
-endif
-endif
 
 NDK_PLATFORM=$(NDK_PLATFORM_ROOT)/platforms/android-4
 

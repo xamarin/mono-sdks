@@ -1,13 +1,22 @@
 using System;
+using System.Reflection;
+using NUnitLite.Runner;
+using NUnit.Framework.Internal;
+
 
 public class Driver {
 	public static string Send (string key, string value) {
-		Console.WriteLine ($"I got {key}:{value}");
-		return "PASS";
+		var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
+		string mini_tests = baseDir + "/mini_tests.dll";
+		string[] args = { mini_tests };
+		var runner = new TextUI ();
+		runner.Execute (args);
+
+		return (runner.Failure ? "FAIL" : "PASS");
 	}
 
 	public static int Main () {
-		Console.WriteLine ("IT WORKS");
-		return 99;
+		return 1;
 	}
 }

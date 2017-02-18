@@ -17,11 +17,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <jni.h>
-#include <android/log.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <pthread.h>
  #include <dlfcn.h>
+
+#include <android/log.h>
+#include <sys/system_properties.h>
 
 typedef enum {
         MONO_IMAGE_OK,
@@ -29,6 +31,13 @@ typedef enum {
         MONO_IMAGE_MISSING_ASSEMBLYREF,
         MONO_IMAGE_IMAGE_INVALID
 } MonoImageOpenStatus;
+
+enum {
+        MONO_DL_EAGER = 0,
+        MONO_DL_LAZY  = 1,
+        MONO_DL_LOCAL = 2,
+        MONO_DL_MASK  = 3
+};
 
 typedef struct MonoDomain_ MonoDomain;
 typedef struct MonoAssembly_ MonoAssembly;
@@ -39,6 +48,14 @@ typedef struct MonoClass_ MonoClass;
 typedef struct MonoImage_ MonoImage;
 typedef struct MonoObject_ MonoObject;
 
+/*
+ * The "err" variable contents must be allocated using g_malloc or g_strdup
+ */
+typedef void* (*MonoDlFallbackLoad) (const char *name, int flags, char **err, void *user_data);
+typedef void* (*MonoDlFallbackSymbol) (void *handle, const char *name, char **err, void *user_data);
+typedef void* (*MonoDlFallbackClose) (void *handle, void *user_data);
+
+typedef void *(*mono_dl_fallback_register_fn) (MonoDlFallbackLoad load_func, MonoDlFallbackSymbol symbol_func, MonoDlFallbackClose close_func, void *user_data);
 
 typedef MonoDomain* (*mono_jit_init_version_fn) (const char *root_domain_name, const char *runtime_version);
 typedef int (*mono_jit_exec_fn) (MonoDomain *domain, MonoAssembly *assembly, int argc, char *argv[]);
@@ -74,7 +91,7 @@ static mono_runtime_invoke_fn mono_runtime_invoke;
 static mono_free_fn mono_free;
 static mono_set_crash_chaining_fn mono_set_crash_chaining;
 static mono_set_signal_chaining_fn mono_set_signal_chaining;
-
+static mono_dl_fallback_register_fn mono_dl_fallback_register;
 
 static char file_dir[2048];
 static char cache_dir[2048];
@@ -83,7 +100,13 @@ static char assemblies_dir[2048];
 
 static MonoAssembly *main_assembly;
 
+//forward decls
 
+static void* my_dlsym (void *handle, const char *name, char **err, void *user_data);
+static void* my_dlopen (const char *name, int flags, char **err, void *user_data);
+
+
+//stuff
 static void
 _log (const char *format, ...)
 {
@@ -105,6 +128,24 @@ cpy_str (JNIEnv *env, char *buff, jstring str)
 		(*env)->ReleaseStringUTFChars (env, str, copy_buff);
 }
 
+static char *
+m_strdup_printf (const char *format, ...)
+{
+        char *ret;
+        va_list args;
+        int n;
+
+        va_start (args, format);
+        n = vasprintf (&ret, format, args);
+        va_end (args);
+        if (n == -1)
+                return NULL;
+
+        return ret;
+}
+
+
+//jni funcs
 void
 Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring path0, jstring path1, jstring path2, jstring path3)
 {
@@ -116,10 +157,10 @@ Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring pa
 	cpy_str (env, data_dir, path2);
 	cpy_str (env, assemblies_dir, path3);
 
-	_log ("I GOTS file dir %s\n", file_dir);
-	_log ("I GOTS cache dir %s\n", cache_dir);
-	_log ("I GOTS data dir %s\n", data_dir);
-	_log ("I GOTS assembly dir %s\n", assemblies_dir);
+	_log ("-- file dir %s\n", file_dir);
+	_log ("-- cache dir %s\n", cache_dir);
+	_log ("-- data dir %s\n", data_dir);
+	_log ("-- assembly dir %s\n", assemblies_dir);
 
 
 	sprintf (buff, "%s/libmonosgen-2.0.so", data_dir);
@@ -141,20 +182,15 @@ Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring pa
 	mono_free = dlsym (libmono, "mono_free");
 	mono_set_crash_chaining = dlsym (libmono, "mono_set_crash_chaining");
 	mono_set_signal_chaining = dlsym (libmono, "mono_set_signal_chaining");
-	
+	mono_dl_fallback_register = dlsym (libmono, "mono_dl_fallback_register"); 
 
 	setenv ("MONO_LOG_LEVEL", "debug", 1);
-	_log ("I GOTS MOST STUFF");
-	
 
 	mono_set_assemblies_path (assemblies_dir);
 	mono_set_crash_chaining (1);
 	mono_set_signal_chaining (1);
-
-	_log ("fhfhfh");
+	mono_dl_fallback_register (my_dlopen, my_dlsym, NULL, NULL);
 	mono_jit_init_version ("TEST RUNNER", "v2.0.50727");
-	_log ("fff/2");
-	
 }
 
 int
@@ -165,17 +201,10 @@ Java_org_mono_android_AndroidRunner_execMain (JNIEnv* env, jobject _this)
 	char *main_assembly_name = "main.exe";
 	char buff[1024];
 
-	_log ("fff/3");
-
 	sprintf (buff, "%s/%s", assemblies_dir, main_assembly_name);
 	main_assembly = mono_assembly_open (buff, NULL);
 
-	_log ("fff/4");
-
 	MonoDomain *domain = mono_domain_get ();
-
-	_log ("fff/5");
-
 	return mono_jit_exec (domain, main_assembly, argc, argv);
 }
 
@@ -184,8 +213,6 @@ static MonoMethod *send_method;
 jstring
 Java_org_mono_android_AndroidRunner_send (JNIEnv* env, jobject thiz, jstring key, jstring val)
 {
-	_log ("fff/88888");
-
 	jboolean key_copy, val_copy;
 	const char *key_buff = (*env)->GetStringUTFChars (env, key, &key_copy);
 	const char *val_buff = (*env)->GetStringUTFChars (env, val, &val_copy);
@@ -227,3 +254,86 @@ Java_org_mono_android_AndroidRunner_send (JNIEnv* env, jobject thiz, jstring key
 	return java_result;
 }
 
+static int
+convert_dl_flags (int flags)
+{
+	int lflags = flags & MONO_DL_LOCAL? 0: RTLD_GLOBAL;
+
+	if (flags & MONO_DL_LAZY)
+		lflags |= RTLD_LAZY;
+	else
+		lflags |= RTLD_NOW;
+	return lflags;
+}
+
+
+/*
+This is the Android specific glue ZZZZOMG
+
+# Issues with the monodroid BCL profile
+	This pinvoke should not be on __Internal by libmonodroid.so: System.TimeZoneInfo+AndroidTimeZones:monodroid_get_system_property
+	This depends on monodroid native code: System.TimeZoneInfo+AndroidTimeZones.GetDefaultTimeZoneName
+*/
+
+#define MONO_API __attribute__ ((__visibility__ ("default")))
+
+static void*
+my_dlopen (const char *name, int flags, char **err, void *user_data)
+{
+	char *the_name = name;
+	if (!name)
+		the_name = m_strdup_printf ("%s/libruntime-bootstrap.so", data_dir);
+
+	void *res = dlopen (the_name, convert_dl_flags (flags));
+
+	//TODO handle loading AOT modules from assemblies_dir
+
+	if (the_name != name)
+		free (the_name);
+
+	return res;
+}
+
+static void*
+my_dlsym (void *handle, const char *name, char **err, void *user_data)
+{
+	void *s;
+	
+	s = dlsym (handle, name);
+
+	if (!s && err) {
+		*err = m_strdup_printf ("Could not find symbol '%s'.", name);
+	}
+
+	return s;
+}
+
+MONO_API int
+monodroid_get_system_property (const char *name, char **value)
+{
+	char *pvalue;
+	char  sp_value [PROP_VALUE_MAX+1] = { 0, };
+	int   len;
+
+	if (value)
+		*value = NULL;
+
+	pvalue  = sp_value;
+	len     = __system_property_get (name, sp_value);
+
+	if (len >= 0 && value) {
+		*value = malloc (len + 1);
+		if (!*value)
+			return -len;
+		memcpy (*value, pvalue, len);
+		(*value)[len] = '\0';
+	}
+
+	return len;
+}
+
+MONO_API void
+monodroid_free (void *ptr)
+{
+	free (ptr);
+}

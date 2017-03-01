@@ -15,7 +15,13 @@ all:
 	$(ANT) debug
 	$(ANT) release
 
-app:
+stage-sdk:
+	mkdir -p jni/armeabi-v7a
+	mkdir -p jni/arm64-v8a
+	cp out/armv7-android/libmonosgen-2.0.so jni/armeabi-v7a/
+	cp out/aarch64-android/libmonosgen-2.0.so jni/arm64-v8a/
+
+app: stage-sdk
 	make -C managed all
 	$(NDK_BUILD)
 	$(ANT) debug

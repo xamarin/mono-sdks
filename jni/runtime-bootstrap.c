@@ -47,6 +47,7 @@ typedef struct MonoString_ MonoString;
 typedef struct MonoClass_ MonoClass;
 typedef struct MonoImage_ MonoImage;
 typedef struct MonoObject_ MonoObject;
+typedef struct MonoThread_ MonoThread;
 
 /*
  * The "err" variable contents must be allocated using g_malloc or g_strdup
@@ -73,6 +74,7 @@ typedef MonoObject* (*mono_runtime_invoke_fn) (MonoMethod *method, void *obj, vo
 typedef void (*mono_free_fn) (void*);
 typedef void (*mono_set_crash_chaining_fn) (int);
 typedef void (*mono_set_signal_chaining_fn) (int);
+typedef MonoThread *(*mono_thread_attach_fn) (MonoDomain *domain);
 
 
 static mono_jit_init_version_fn mono_jit_init_version;
@@ -92,6 +94,8 @@ static mono_free_fn mono_free;
 static mono_set_crash_chaining_fn mono_set_crash_chaining;
 static mono_set_signal_chaining_fn mono_set_signal_chaining;
 static mono_dl_fallback_register_fn mono_dl_fallback_register;
+static mono_thread_attach_fn mono_thread_attach;
+
 
 static char file_dir[2048];
 static char cache_dir[2048];
@@ -144,7 +148,7 @@ m_strdup_printf (const char *format, ...)
         return ret;
 }
 
-
+static MonoDomain *root_domain;
 //jni funcs
 void
 Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring path0, jstring path1, jstring path2, jstring path3)
@@ -183,14 +187,16 @@ Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring pa
 	mono_set_crash_chaining = dlsym (libmono, "mono_set_crash_chaining");
 	mono_set_signal_chaining = dlsym (libmono, "mono_set_signal_chaining");
 	mono_dl_fallback_register = dlsym (libmono, "mono_dl_fallback_register"); 
+	mono_thread_attach = dlsym (libmono, "mono_thread_attach"); 
 
-	setenv ("MONO_LOG_LEVEL", "debug", 1);
+	// setenv ("MONO_LOG_LEVEL", "debug", 1);
+	// setenv ("MONO_VERBOSE_METHOD", "GetCallingAssembly", 1);
 
 	mono_set_assemblies_path (assemblies_dir);
 	mono_set_crash_chaining (1);
 	mono_set_signal_chaining (1);
 	mono_dl_fallback_register (my_dlopen, my_dlsym, NULL, NULL);
-	mono_jit_init_version ("TEST RUNNER", "v2.0.50727");
+	root_domain = mono_jit_init_version ("TEST RUNNER", "v2.0.50727");
 }
 
 int
@@ -201,6 +207,7 @@ Java_org_mono_android_AndroidRunner_execMain (JNIEnv* env, jobject _this)
 	char *main_assembly_name = "main.exe";
 	char buff[1024];
 
+	mono_thread_attach (root_domain);
 	sprintf (buff, "%s/%s", assemblies_dir, main_assembly_name);
 	main_assembly = mono_assembly_open (buff, NULL);
 
@@ -216,6 +223,8 @@ Java_org_mono_android_AndroidRunner_send (JNIEnv* env, jobject thiz, jstring key
 	jboolean key_copy, val_copy;
 	const char *key_buff = (*env)->GetStringUTFChars (env, key, &key_copy);
 	const char *val_buff = (*env)->GetStringUTFChars (env, val, &val_copy);
+
+	mono_thread_attach (root_domain);
 
 	void * params[] = {
 		mono_string_new (mono_domain_get (), key_buff),
@@ -239,6 +248,7 @@ Java_org_mono_android_AndroidRunner_send (JNIEnv* env, jobject thiz, jstring key
 
 	if (res) {
 		char *str = mono_string_to_utf8 (res);
+		_log ("SEND FAILED WITH: %s\n", str);
 		java_result = (*env)->NewStringUTF (env, str);
 		mono_free (str);
 	} else {

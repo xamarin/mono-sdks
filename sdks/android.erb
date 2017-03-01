@@ -74,6 +74,9 @@ setup-toolchain:: .stamp-toolchain-$(<%=name%>_DIR)
 configure-$(<%=name%>_DIR): .stamp-configure-$(<%=name%>_DIR)
 .PHONY: configure-$(<%=name%>_DIR)
 
+echo-configure::
+	@echo $(MONO_PATH)/configure $(<%=name%>_CONFIGURE_ENVIRONMENT) $(<%=name%>_CONFIGURE_FLAGS)
+
 configure:: configure-$(<%=name%>_DIR)
 
 build-$(<%=name%>_DIR): configure-$(<%=name%>_DIR)

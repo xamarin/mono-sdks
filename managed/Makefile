@@ -48,7 +48,7 @@ main.exe: main.cs mini_tests.dll $(BCL_FILES) $(DEPS_FILES)
 Mono.Android.dll: fake-monodroid.cs
 	mcs /nostdlib fake-monodroid.cs -target:library -out:Mono.Android.dll $(MINI_TEST_DEPS)
 
-.assets_published: Makefile $(BUILD_ARTIFACT) $(TOP)/out/libmonosgen-2.0.so
+.assets_published: Makefile $(BUILD_ARTIFACT)
 	mkdir -p $(ASSETS_DIR)
 	cp $(BUILD_ARTIFACT) $(ASSETS_DIR)
 	cp $(BCL_FILES) $(DEPS_FILES) $(ASSETS_DIR)

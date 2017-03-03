@@ -189,6 +189,11 @@ Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring pa
 	mono_dl_fallback_register = dlsym (libmono, "mono_dl_fallback_register"); 
 	mono_thread_attach = dlsym (libmono, "mono_thread_attach"); 
 
+
+	//MUST HAVE envs
+	setenv ("TMPDIR", cache_dir, 1);
+	setenv ("MONO_CFG_DIR", file_dir, 1);
+
 	// setenv ("MONO_LOG_LEVEL", "debug", 1);
 	// setenv ("MONO_VERBOSE_METHOD", "GetCallingAssembly", 1);
 
@@ -196,7 +201,7 @@ Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring pa
 	mono_set_crash_chaining (1);
 	mono_set_signal_chaining (1);
 	mono_dl_fallback_register (my_dlopen, my_dlsym, NULL, NULL);
-	root_domain = mono_jit_init_version ("TEST RUNNER", "v2.0.50727");
+	root_domain = mono_jit_init_version ("TEST RUNNER", "mobile");
 }
 
 int
@@ -248,7 +253,7 @@ Java_org_mono_android_AndroidRunner_send (JNIEnv* env, jobject thiz, jstring key
 
 	if (res) {
 		char *str = mono_string_to_utf8 (res);
-		_log ("SEND FAILED WITH: %s\n", str);
+		_log ("SEND RETURNED: %s\n", str);
 		java_result = (*env)->NewStringUTF (env, str);
 		mono_free (str);
 	} else {

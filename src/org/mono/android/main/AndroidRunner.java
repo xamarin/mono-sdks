@@ -93,8 +93,11 @@ public class AndroidRunner extends Activity
 
 		AssetManager am = context.getAssets ();
 		new File (assemblyDir).mkdir ();
-
 		copyAssetDir (am, "asm", assemblyDir);
+
+		new File (filesDir + "/mono").mkdir ();
+		new File (filesDir + "/mono/2.1").mkdir ();
+		copyAssetDir (am, "mconfig", filesDir + "/mono/2.1");
 
 		init (filesDir, cacheDir, dataDir, assemblyDir);
 		execMain ();

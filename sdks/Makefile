@@ -55,13 +55,17 @@ setup-out:
 	mkdir -p $(TOP)/out/bcl
 
 
+package-bcl: setup-out
+	cp $(MONO_PATH)/mcs/class/lib/monodroid/*.dll $(TOP)/out/bcl
+	cp $(MONO_PATH)/mcs/class/lib/monodroid/*.pdb $(TOP)/out/bcl
+
+
 package-runtimes: setup-out
 	cp armv7-android/mono/mini/.libs/libmonosgen-2.0.so $(TOP)/out/armv7-android/
 	cp aarch64-android/mono/mini/.libs/libmonosgen-2.0.so $(TOP)/out/aarch64-android
 
-package: package-runtimes
-	cp $(MONO_PATH)/mcs/class/lib/monodroid/*.dll $(TOP)/out/bcl
-	cp $(MONO_PATH)/mcs/class/lib/monodroid/*.pdb $(TOP)/out/bcl
+package: package-runtimes package-bcl
+	@echo Packaging mono
 
 
 all: build

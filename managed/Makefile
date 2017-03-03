@@ -23,7 +23,8 @@ BCL_ASSEMBLIES=	\
 	mscorlib.dll	\
 	System.dll	\
 	System.Core.dll	\
-	System.Xml.dll
+	System.Xml.dll	\
+	System.Runtime.Remoting.dll	\
 
 DEPS_ASSEMBLIES= \
 	nunitlite.dll
@@ -35,7 +36,7 @@ MINI_TEST_DEPS= $(patsubst %,-r:%,$(BCL_FILES) $(DEPS_FILES))
 BCL_FILES=$(patsubst %,$(BCL_DIR)/%,$(BCL_ASSEMBLIES))
 DEPS_FILES=$(patsubst %,$(DEPS_DIR)/%,$(DEPS_ASSEMBLIES))
 
-BUILD_ARTIFACT= main.exe mini_tests.dll Mono.Android.dll
+BUILD_ARTIFACT= main.exe mini_tests.dll Mono.Android.dll android_corlib_test.dll
 
 all: .assets_published
 

@@ -16,14 +16,22 @@
  */
 #include <string.h>
 #include <stdlib.h>
-#include <jni.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <pthread.h>
- #include <dlfcn.h>
+#include <dlfcn.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <errno.h>
+
+#include <jni.h>
 
 #include <android/log.h>
 #include <sys/system_properties.h>
+
+#define DEFAULT_DIRECTORY_MODE S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH
+
 
 typedef enum {
         MONO_IMAGE_OK,
@@ -75,6 +83,7 @@ typedef void (*mono_free_fn) (void*);
 typedef void (*mono_set_crash_chaining_fn) (int);
 typedef void (*mono_set_signal_chaining_fn) (int);
 typedef MonoThread *(*mono_thread_attach_fn) (MonoDomain *domain);
+typedef void (*mono_domain_set_config_fn) (MonoDomain *, const char *, const char *);
 
 
 static mono_jit_init_version_fn mono_jit_init_version;
@@ -95,7 +104,7 @@ static mono_set_crash_chaining_fn mono_set_crash_chaining;
 static mono_set_signal_chaining_fn mono_set_signal_chaining;
 static mono_dl_fallback_register_fn mono_dl_fallback_register;
 static mono_thread_attach_fn mono_thread_attach;
-
+static mono_domain_set_config_fn mono_domain_set_config;
 
 static char file_dir[2048];
 static char cache_dir[2048];
@@ -148,6 +157,66 @@ m_strdup_printf (const char *format, ...)
         return ret;
 }
 
+static int
+m_make_directory (const char *path, int mode)
+{
+#if WINDOWS
+        return mkdir (path);
+#else
+        return mkdir (path, mode);
+#endif
+}
+
+static int
+m_create_directory (const char *pathname, int mode)
+{
+        if (mode <= 0)
+                mode = DEFAULT_DIRECTORY_MODE;
+
+        if  (!pathname || *pathname == '\0') {
+                errno = EINVAL;
+                return -1;
+        }
+
+        mode_t oldumask = umask (022);
+        char *path = strdup (pathname);
+        int rv, ret = 0;
+		char *d;
+        for (d = path; *d; ++d) {
+                if (*d != '/')
+                        continue;
+                *d = 0;
+                if (*path) {
+                        rv = m_make_directory (path, mode);
+                        if  (rv == -1 && errno != EEXIST)  {
+                                ret = -1;
+                                break;
+                        }
+                }
+                *d = '/';
+        }
+        free (path);
+        if (ret == 0)
+                ret = m_make_directory (pathname, mode);
+        umask (oldumask);
+
+        return ret;
+}
+
+
+
+static void
+create_and_set (const char *home, const char *relativePath, const char *envvar)
+{
+	char *dir = m_strdup_printf ("%s/%s", home, relativePath);
+	int rv = m_create_directory (dir, DEFAULT_DIRECTORY_MODE);
+	if (rv < 0 && errno != EEXIST)
+		_log ("Failed to create XDG directory %s. %s", dir, strerror (errno));
+	if (envvar)
+		setenv (envvar, dir, 1);
+	free (dir);
+}
+
 static MonoDomain *root_domain;
 //jni funcs
 void
@@ -188,12 +257,20 @@ Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring pa
 	mono_set_signal_chaining = dlsym (libmono, "mono_set_signal_chaining");
 	mono_dl_fallback_register = dlsym (libmono, "mono_dl_fallback_register"); 
 	mono_thread_attach = dlsym (libmono, "mono_thread_attach"); 
+	mono_domain_set_config = dlsym (libmono, "mono_domain_set_config");
 
 
 	//MUST HAVE envs
 	setenv ("TMPDIR", cache_dir, 1);
 	setenv ("MONO_CFG_DIR", file_dir, 1);
 
+	create_and_set (file_dir, "home", "HOME");
+	create_and_set (file_dir, "home/.local/share", "XDG_DATA_HOME");
+	create_and_set (file_dir, "home/.local/share", "XDG_DATA_HOME");
+	create_and_set (file_dir, "home/.config", "XDG_CONFIG_HOME");
+
+
+	//Debug flags
 	// setenv ("MONO_LOG_LEVEL", "debug", 1);
 	// setenv ("MONO_VERBOSE_METHOD", "GetCallingAssembly", 1);
 
@@ -202,6 +279,7 @@ Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring pa
 	mono_set_signal_chaining (1);
 	mono_dl_fallback_register (my_dlopen, my_dlsym, NULL, NULL);
 	root_domain = mono_jit_init_version ("TEST RUNNER", "mobile");
+	mono_domain_set_config (root_domain, assemblies_dir, file_dir);
 }
 
 int
@@ -217,7 +295,7 @@ Java_org_mono_android_AndroidRunner_execMain (JNIEnv* env, jobject _this)
 	main_assembly = mono_assembly_open (buff, NULL);
 
 	MonoDomain *domain = mono_domain_get ();
-	return mono_jit_exec (domain, main_assembly, argc, argv);
+	return 0;
 }
 
 static MonoMethod *send_method;
@@ -295,7 +373,7 @@ This is the Android specific glue ZZZZOMG
 static void*
 my_dlopen (const char *name, int flags, char **err, void *user_data)
 {
-	char *the_name = name;
+	const char *the_name = name;
 	if (!name)
 		the_name = m_strdup_printf ("%s/libruntime-bootstrap.so", data_dir);
 
@@ -304,7 +382,7 @@ my_dlopen (const char *name, int flags, char **err, void *user_data)
 	//TODO handle loading AOT modules from assemblies_dir
 
 	if (the_name != name)
-		free (the_name);
+		free ((char*)the_name);
 
 	return res;
 }

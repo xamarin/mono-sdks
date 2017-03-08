@@ -84,6 +84,7 @@ typedef void (*mono_set_crash_chaining_fn) (int);
 typedef void (*mono_set_signal_chaining_fn) (int);
 typedef MonoThread *(*mono_thread_attach_fn) (MonoDomain *domain);
 typedef void (*mono_domain_set_config_fn) (MonoDomain *, const char *, const char *);
+typedef int (*mono_runtime_set_main_args_fn) (int argc, char* argv[]);
 
 
 static mono_jit_init_version_fn mono_jit_init_version;
@@ -105,6 +106,7 @@ static mono_set_signal_chaining_fn mono_set_signal_chaining;
 static mono_dl_fallback_register_fn mono_dl_fallback_register;
 static mono_thread_attach_fn mono_thread_attach;
 static mono_domain_set_config_fn mono_domain_set_config;
+static mono_runtime_set_main_args_fn mono_runtime_set_main_args;
 
 static char file_dir[2048];
 static char cache_dir[2048];
@@ -258,7 +260,7 @@ Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring pa
 	mono_dl_fallback_register = dlsym (libmono, "mono_dl_fallback_register"); 
 	mono_thread_attach = dlsym (libmono, "mono_thread_attach"); 
 	mono_domain_set_config = dlsym (libmono, "mono_domain_set_config");
-
+	mono_runtime_set_main_args = dlsym (libmono, "mono_runtime_set_main_args");
 
 	//MUST HAVE envs
 	setenv ("TMPDIR", cache_dir, 1);
@@ -293,8 +295,9 @@ Java_org_mono_android_AndroidRunner_execMain (JNIEnv* env, jobject _this)
 	mono_thread_attach (root_domain);
 	sprintf (buff, "%s/%s", assemblies_dir, main_assembly_name);
 	main_assembly = mono_assembly_open (buff, NULL);
+	
+	mono_runtime_set_main_args (argc, argv);
 
-	MonoDomain *domain = mono_domain_get ();
 	return 0;
 }
 
@@ -331,7 +334,7 @@ Java_org_mono_android_AndroidRunner_send (JNIEnv* env, jobject thiz, jstring key
 
 	if (res) {
 		char *str = mono_string_to_utf8 (res);
-		_log ("SEND RETURNED: %s\n", str);
+		// _log ("SEND RETURNED: %s\n", str);
 		java_result = (*env)->NewStringUTF (env, str);
 		mono_free (str);
 	} else {

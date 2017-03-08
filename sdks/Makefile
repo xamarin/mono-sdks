@@ -45,8 +45,9 @@ configure-mono: $(MONO_PATH)/configure
 config-bcl: .stamp-bcl-configure
 
 build-bcl: config-bcl
-	cd $(MONO_PATH) && \
-	make -j4
+	pushd bcl && \
+	make -j12 && \
+	popd
 
 setup-out:
 	mkdir -p $(TOP)/out

@@ -27,7 +27,6 @@ app: stage-sdk
 	make -C managed all
 	$(NDK_BUILD)
 	$(ANT) debug
-	$(ANT) release
 
 clean:
 	$(ANT) clean

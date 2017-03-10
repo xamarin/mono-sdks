@@ -26,7 +26,8 @@ public class AndroidRunner extends Activity
 		// Log.w ("MONO", "CHECKING STATUS!");
 		String s = send ("status", "tests");
 		final TextView tv = (TextView)findViewById (R.id.text);
-		tv.setText (s);
+		if (!s.equals ("NO RUN"))
+			tv.setText (s);
 		if (s.equals ("IN-PROGRESS"))
 			the_handler.postDelayed(
 				new Runnable () {
@@ -34,7 +35,13 @@ public class AndroidRunner extends Activity
 						updateTheButton ();
 					}
 				},
-				200);
+				1000);
+	}
+
+	static String mkstr (CharSequence cq) {
+		StringBuilder sb = new StringBuilder ();
+		sb.append (cq);
+		return sb.toString();
 	}
 
 	@Override
@@ -47,12 +54,14 @@ public class AndroidRunner extends Activity
 		setContentView (view);
 		Button b = (Button)findViewById (R.id.button);
 		final TextView tv = (TextView)findViewById (R.id.text);
+		final TextView ed = (EditText)findViewById (R.id.input);
 		the_handler = new Handler (this.getMainLooper());
 
 		b.setOnClickListener(
 			new View.OnClickListener () {
 				public void onClick(View v) {
-					tv.setText (send ("start", "tests"));
+					String input_str = mkstr (ed.getText ());
+					tv.setText (send ("start", input_str));
 					updateTheButton ();
 				}
 			});

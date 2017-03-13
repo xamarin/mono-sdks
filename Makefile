@@ -18,8 +18,8 @@ all:
 stage-sdk:
 	mkdir -p jni/armeabi-v7a
 	mkdir -p jni/arm64-v8a
-	cp out/armv7-android/libmonosgen-2.0.so jni/armeabi-v7a/
-	cp out/aarch64-android/libmonosgen-2.0.so jni/arm64-v8a/
+	cp out/armv7-android/* jni/armeabi-v7a/
+	cp out/aarch64-android/* jni/arm64-v8a/
 	mkdir -p assets/mconfig
 	cp machine.config assets/mconfig
 

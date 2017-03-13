@@ -22,9 +22,15 @@ LOCAL_SRC_FILES := runtime-bootstrap.c
 include $(BUILD_SHARED_LIBRARY)
 
 
-
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := lib-monosgen
 LOCAL_SRC_FILES := $(TARGET_ARCH_ABI)/libmonosgen-2.0.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE    := lib-suppport
+LOCAL_SRC_FILES := $(TARGET_ARCH_ABI)/libMonoPosixHelper.so
 include $(PREBUILT_SHARED_LIBRARY)

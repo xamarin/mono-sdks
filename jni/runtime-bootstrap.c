@@ -114,6 +114,8 @@ static char data_dir[2048];
 static char assemblies_dir[2048];
 
 static MonoAssembly *main_assembly;
+static void *runtime_bootstrap_dso;
+static void *mono_posix_helper_dso;
 
 //forward decls
 
@@ -241,6 +243,7 @@ Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring pa
 	sprintf (buff, "%s/libmonosgen-2.0.so", data_dir);
 	void *libmono = dlopen (buff, RTLD_LAZY);
 
+
 	mono_jit_init_version = dlsym (libmono, "mono_jit_init_version");
 	mono_assembly_open = dlsym (libmono, "mono_assembly_open");
 	mono_domain_get = dlsym (libmono, "mono_domain_get");
@@ -282,6 +285,12 @@ Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring pa
 	mono_dl_fallback_register (my_dlopen, my_dlsym, NULL, NULL);
 	root_domain = mono_jit_init_version ("TEST RUNNER", "mobile");
 	mono_domain_set_config (root_domain, assemblies_dir, file_dir);
+
+	sprintf (buff, "%s/libruntime-bootstrap.so", data_dir);
+	runtime_bootstrap_dso = dlopen (buff, RTLD_LAZY);
+
+	sprintf (buff, "%s/libMonoPosixHelper.so", data_dir);
+	mono_posix_helper_dso = dlopen (buff, RTLD_LAZY);	
 }
 
 int
@@ -373,19 +382,16 @@ This is the Android specific glue ZZZZOMG
 
 #define MONO_API __attribute__ ((__visibility__ ("default")))
 
+#define INTERNAL_LIB_HANDLE ((void*)(size_t)-1)
 static void*
 my_dlopen (const char *name, int flags, char **err, void *user_data)
 {
-	const char *the_name = name;
 	if (!name)
-		the_name = m_strdup_printf ("%s/libruntime-bootstrap.so", data_dir);
+		return INTERNAL_LIB_HANDLE;
 
-	void *res = dlopen (the_name, convert_dl_flags (flags));
+	void *res = dlopen (name, convert_dl_flags (flags));
 
 	//TODO handle loading AOT modules from assemblies_dir
-
-	if (the_name != name)
-		free ((char*)the_name);
 
 	return res;
 }
@@ -394,8 +400,14 @@ static void*
 my_dlsym (void *handle, const char *name, char **err, void *user_data)
 {
 	void *s;
-	
-	s = dlsym (handle, name);
+
+	if (handle == INTERNAL_LIB_HANDLE) {
+		s = dlsym (runtime_bootstrap_dso, name);
+		if (!s && mono_posix_helper_dso)
+			s = dlsym (mono_posix_helper_dso, name);
+	} else {
+		s = dlsym (handle, name);
+	}
 
 	if (!s && err) {
 		*err = m_strdup_printf ("Could not find symbol '%s'.", name);

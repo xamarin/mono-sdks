@@ -64,6 +64,8 @@ package-bcl: setup-out
 package-runtimes: setup-out
 	cp armv7-android/mono/mini/.libs/libmonosgen-2.0.so $(TOP)/out/armv7-android/
 	cp aarch64-android/mono/mini/.libs/libmonosgen-2.0.so $(TOP)/out/aarch64-android
+	cp armv7-android/support/.libs/*.so $(TOP)/out/armv7-android/
+	cp aarch64-android/support/.libs/*.so $(TOP)/out/aarch64-android/
 
 package: package-runtimes package-bcl
 	@echo Packaging mono

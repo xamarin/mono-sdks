@@ -36,7 +36,7 @@ MINI_TEST_DEPS= $(patsubst %,-r:%,$(BCL_FILES) $(DEPS_FILES))
 BCL_FILES=$(patsubst %,$(BCL_DIR)/%,$(BCL_ASSEMBLIES))
 DEPS_FILES=$(patsubst %,$(DEPS_DIR)/%,$(DEPS_ASSEMBLIES))
 
-BUILD_ARTIFACT= main.exe mini_tests.dll Mono.Android.dll monodroid_mscorlib_test.dll monodroid_System_test.dll
+BUILD_ARTIFACT= main.exe mini_tests.dll Mono.Android.dll monodroid_corlib_test.dll monodroid_System_test.dll
 
 all: .assets_published
 

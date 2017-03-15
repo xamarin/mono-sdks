@@ -5,10 +5,25 @@ using System.Threading;
 using System.Reflection;
 using NUnitLite.Runner;
 using NUnit.Framework.Internal;
+using NUnit.Framework.Api;
 
+public class MyRunner : TextUI, ITestListener
+{
+	public String failed_tests = "";
+
+    public void TestFinished(ITestResult result)
+	{
+		if (result.ResultState.Status == TestStatus.Failed) {
+			if (failed_tests.Length > 0)
+				failed_tests += ", ";
+			failed_tests += result.Test.FullName;
+		}
+		base.TestFinished (result);
+	}
+}
 
 public class Driver {
-	static TextUI runner;
+	static MyRunner runner;
 	static Thread runner_thread;
 	static bool done;
 
@@ -27,7 +42,7 @@ public class Driver {
 
 			var local_runner = runner;
 			runner = null;
-			return local_runner.Failure ? "FAIL" : "PASS";
+			return local_runner.Failure ? ("FAIL: " + local_runner.failed_tests): "PASS";
 		} else {
 			return "WTF";
 		}
@@ -40,12 +55,13 @@ public class Driver {
 
 	static TestSuite[] suites = new TestSuite [] {
 		new TestSuite () { Name = "mini", File = "mini_tests.dll" },
-		new TestSuite () { Name = "corlib", File = "monodroid_mscorlib_test.dll" },
+		new TestSuite () { Name = "corlib", File = "monodroid_corlib_test.dll" },
 		new TestSuite () { Name = "system", File = "monodroid_System_test.dll" },
 	};
 
 	public static void StartTest (string name) {
 		var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+		// name = "system,MonoTests.System.Net.NetworkInformation.NetworkInterfaceTest"
 
 		string extra_disable = "";
 		if (IntPtr.Size == 4)
@@ -75,7 +91,7 @@ public class Driver {
 		arg_list.Add (baseDir + "/" + testsuite_name);
 
 		done = false;
-		runner = new TextUI ();
+		runner = new MyRunner ();
 		runner_thread = new Thread ( () => {
 			runner.Execute (arg_list.ToArray ());
 			done = true;

@@ -1,4 +1,4 @@
-TOP=$(CURDIR)/..
+TOP=$(realpath $(CURDIR)/..)
 MONO_PATH=$(TOP)/external/mono
 
 BCL_DIR=$(TOP)/out/bcl
@@ -43,11 +43,27 @@ all: .assets_published
 mini_tests.dll: $(MINI_TEST_SOURCES) mini-test-runner.cs $(BCL_FILES) $(DEPS_FILES)
 	mcs /nostdlib /unsafe -target:library -out:mini_tests.dll -define:__MOBILE__ $(MINI_TEST_DEPS) $(MINI_TEST_SOURCES) mini-test-runner.cs 
 
+#FIXME copy the resource assemblies
+monodroid_corlib_test.dll: $(BCL_FILES) $(DEPS_FILES)
+	pushd $(TOP)/external/mono/mcs/class/corlib &&	\
+	make build-test-lib &&	\
+	cp $@ $(TOP)/managed/ && \
+	popd
+
+monodroid_System_test.dll: $(BCL_FILES) $(DEPS_FILES)
+	pushd $(TOP)/external/mono/mcs/class/System &&	\
+	make build-test-lib &&	\
+	cp $@ $(TOP)/managed/ && \
+	popd
+
 main.exe: main.cs mini_tests.dll $(BCL_FILES) $(DEPS_FILES)
 	mcs /nostdlib main.cs $(MINI_TEST_DEPS)
 
 Mono.Android.dll: fake-monodroid.cs
 	mcs /nostdlib fake-monodroid.cs -target:library -out:Mono.Android.dll $(MINI_TEST_DEPS)
+
+clean:
+	rm $(BUILD_ARTIFACT)
 
 .assets_published: Makefile $(BUILD_ARTIFACT)
 	mkdir -p $(ASSETS_DIR)

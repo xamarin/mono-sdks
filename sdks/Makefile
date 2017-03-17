@@ -71,7 +71,9 @@ package: package-runtimes package-bcl
 	@echo Packaging mono
 
 
-all: build
+all:
+	make -C $(CURDIR) build build-bcl && \
+	make -C $(CURDIR) package
 
 prep-repos:
 	git submodule update

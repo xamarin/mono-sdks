@@ -16,7 +16,7 @@ public class MyRunner : TextUI, ITestListener
 		if (result.ResultState.Status == TestStatus.Failed) {
 			if (failed_tests.Length > 0)
 				failed_tests += ", ";
-			failed_tests += result.Test.FullName;
+			failed_tests += result.Test.Name;
 		}
 		base.TestFinished (result);
 	}
@@ -26,7 +26,6 @@ public class Driver {
 	static MyRunner runner;
 	static Thread runner_thread;
 	static bool done;
-
 	public static string Send (string key, string value) {
 		if (key == "start") {
 			if (runner != null)
@@ -61,12 +60,14 @@ public class Driver {
 
 	public static void StartTest (string name) {
 		var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-		// name = "system,MonoTests.System.Net.NetworkInformation.NetworkInterfaceTest"
+		// name = "system,MonoTests.System.Diagnostics.ProcessTest";
+		// name = "corlib";
 
 		string extra_disable = "";
 		if (IntPtr.Size == 4)
 			extra_disable = ",LargeFileSupport";
 
+		extra_disable += ",AndroidNotWorking";
 		string[] args = name.Split (',');
 		var testsuite_name = suites.Where (ts => ts.Name == args [0]).Select (ts => ts.File).FirstOrDefault ();
 		if (testsuite_name == null)

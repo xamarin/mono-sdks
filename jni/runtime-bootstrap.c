@@ -31,6 +31,7 @@
 
 #include <jni.h>
 
+#include <linux/prctl.h>
 #include <android/log.h>
 #include <sys/system_properties.h>
 
@@ -242,6 +243,7 @@ Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring pa
 	_log ("-- cache dir %s\n", cache_dir);
 	_log ("-- data dir %s\n", data_dir);
 	_log ("-- assembly dir %s\n", assemblies_dir);
+	prctl (PR_SET_DUMPABLE, 1);
 
 
 	sprintf (buff, "%s/libmonosgen-2.0.so", data_dir);
@@ -486,21 +488,13 @@ init_sock_addr (struct sockaddr **res, const char *str_addr)
 MONO_API int
 monodroid_getifaddrs (m_ifaddrs **ifap)
 {
-	void *libc = dlopen ("libc.so", RTLD_NOW);
-	if (libc) {
-		get_ifaddr_fn get_ifaddr = dlsym (libc, "getifaddrs");
-		if (get_ifaddr)
-			return get_ifaddr (ifap);
-	}
-
-
 	char buff[1024];
 	FILE * f = fopen ("/proc/net/route", "r");
 	if (f) {
 		int i = 0;
 		fgets (buff, 1023, f);
 		fgets (buff, 1023, f);
-		while (!isspace (buff [i]))
+		while (!isspace (buff [i]) && i < 1024)
 			++i;
 		buff [i] = 0;
 		fclose (f);
@@ -525,15 +519,6 @@ monodroid_getifaddrs (m_ifaddrs **ifap)
 MONO_API void
 monodroid_freeifaddrs (m_ifaddrs *ifap)
 {
-	void *libc = dlopen ("libc.so", RTLD_NOW);
-	if (libc) {
-		freeifaddr_fn freeifaddr = dlsym (libc, "freeifaddr");
-		if (freeifaddr) {
-			freeifaddr (ifap);
-			return;
-		}
-	}
-
 	free (ifap->ifa_name);
 	if (ifap->ifa_addr)
 		free (ifap->ifa_addr);

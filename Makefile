@@ -9,8 +9,8 @@ PACKAGE   = org.mono.android.AndroidTestRunner
 ACTIVITY  = org.mono.android.AndroidRunner
 
 all:
-	make -C managed all
 	make -C sdks all
+	make -C managed all
 	$(NDK_BUILD)
 	$(ANT) debug
 	$(ANT) release

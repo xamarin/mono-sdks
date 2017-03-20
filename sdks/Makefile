@@ -40,7 +40,7 @@ configure-mono: $(MONO_PATH)/configure
 
 .stamp-bcl-configure: $(MONO_PATH)/configure
 	./wrap-configure.sh bcl $(MONO_PATH)/configure --with-monodroid=yes  --with-profile4_x=no --with-mcs-docs=no --disable-btls --disable-nls &&	\
-	$(TOUCH) $$@
+	touch $@
 
 config-bcl: .stamp-bcl-configure
 

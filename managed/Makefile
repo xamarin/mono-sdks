@@ -1,5 +1,4 @@
 TOP=$(realpath $(CURDIR)/..)
-MONO_PATH=$(TOP)/external/mono
 
 BCL_DIR=$(TOP)/out/bcl
 DEPS_DIR=$(TOP)/out/deps
@@ -29,7 +28,7 @@ BCL_ASSEMBLIES=	\
 DEPS_ASSEMBLIES= \
 	nunitlite.dll
 
-MINI_PATH=$(MONO_PATH)/mono/mini
+MINI_PATH=$(MONO_SOURCE_PATH)/mono/mini
 MINI_TEST_SOURCES= $(patsubst %,$(MINI_PATH)/%,$(MINI_TEST_FILES))
 MINI_TEST_DEPS= $(patsubst %,-r:%,$(BCL_FILES) $(DEPS_FILES))
 

@@ -1,6 +1,8 @@
 TOP=$(CURDIR)/..
 SDKS_PATH=$(CURDIR)
-MONO_PATH=$(TOP)/external/mono
+ifndef MONO_SOURCE_PATH
+$(error MONO_SOURCE_PATH not set)
+endif
 MONO_FRAMEWORK=/Library/Frameworks/Mono.framework/Versions/Current/
 IS_RELEASE=true
 
@@ -31,15 +33,15 @@ include aarch64-android-generated.mk
 # include aarch64-android.mk
 
 
-# $(MONO_PATH)/configure: $(MONO_PATH)/configure.ac Makefile
-$(MONO_PATH)/configure: $(MONO_PATH)/configure.ac
-	$(Q) ./wrap-autogen.sh $(MONO_PATH) mono ''
+# $(MONO_SOURCE_PATH)/configure: $(MONO_SOURCE_PATH)/configure.ac Makefile
+$(MONO_SOURCE_PATH)/configure: $(MONO_SOURCE_PATH)/configure.ac
+	$(Q) ./wrap-autogen.sh $(MONO_SOURCE_PATH) mono ''
 
-configure-mono: $(MONO_PATH)/configure
+configure-mono: $(MONO_SOURCE_PATH)/configure
 .PHONY: configure-mono
 
-.stamp-bcl-configure: $(MONO_PATH)/configure
-	./wrap-configure.sh bcl $(MONO_PATH)/configure --with-monodroid=yes  --with-profile4_x=no --with-mcs-docs=no --disable-btls --disable-nls &&	\
+.stamp-bcl-configure: $(MONO_SOURCE_PATH)/configure
+	./wrap-configure.sh bcl $(MONO_SOURCE_PATH)/configure --with-monodroid=yes  --with-profile4_x=no --with-mcs-docs=no --disable-btls --disable-nls &&	\
 	touch $@
 
 config-bcl: .stamp-bcl-configure
@@ -57,8 +59,8 @@ setup-out:
 
 
 package-bcl: setup-out
-	cp $(MONO_PATH)/mcs/class/lib/monodroid/*.dll $(TOP)/out/bcl
-	cp $(MONO_PATH)/mcs/class/lib/monodroid/*.pdb $(TOP)/out/bcl
+	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.dll $(TOP)/out/bcl
+	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.pdb $(TOP)/out/bcl || true
 
 
 package-runtimes: setup-out

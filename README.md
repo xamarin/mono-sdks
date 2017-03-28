@@ -9,9 +9,9 @@ Build scripts and sample apps for mono targeting its supported platforms.
 
 ## Android
 
-Add remaining Android targets
-Make the bcl build use the same setup as the android targets
-Add cross-compiler targets for Android
+- Add remaining Android targets
+- Make the bcl build use the same setup as the android targets
+- Add cross-compiler targets for Android
 
 ## iOS
 

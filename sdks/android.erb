@@ -1,0 +1,88 @@
+<%=name%>_ANDROID_PLATFORM=<%=platform%>
+<%=name%>_NDK_PLATFORM=$(NDK_PLATFORM_ROOT)/platforms/$(<%=name%>_ANDROID_PLATFORM)
+<%=name%>_NAME=<%=abi_name%>
+<%=name%>_DIR=<%=dir%>
+<%=name%>_TOOLCHAIN_BIN_DIR=$(TOP)/sdks/toolchains/$(<%=name%>_DIR)/bin
+<%=name%>_NDK_TOOLCHAIN_NAME=<%=toolchain_name%>
+<%=name%>_NDK_TOOLCHAIN_ARCH=<%=toolchain_arch%>
+
+
+<%=name%>_CONFIGURE_FLAGS= \
+	--cache-file=$(SDKS_PATH)/$(<%=name%>_DIR).config.cache \
+	--host=<%=host_triple%> \
+	--without-ikvm-native --enable-maintainer-mode	\
+	--with-profile2=no --with-profile4=no --with-profile4_5=no --with-monodroid --enable-nls=no --with-sigaltstack=yes \
+	--with-tls=pthread mono_cv_uscore=yes \
+	--enable-minimal=ssa,portability,attach,verifier,full_messages,sgen_remset,sgen_marksweep_par,sgen_marksweep_fixed,sgen_marksweep_fixed_par,sgen_copying,logging,security,shared_handles \
+	--disable-mcs-build --disable-executables --disable-iconv \
+	--enable-dynamic-btls --with-btls-android-ndk=$(NDK_PLATFORM_ROOT)
+
+
+<%=name%>_EXTRA_LDFLAGS=<%=ldflags%>
+<%=name%>_EXTRA_CFLAGS=<%=cflags%>
+<%=name%>_EXTRA_CPPFLAGS=<%=cppflags%>
+
+<%=name%>_LDFLAGS=$(COMMON_LDFLAGS) $(<%=name%>_EXTRA_LDFLAGS) \
+			-Wl,-rpath-link=$(<%=name%>_NDK_PLATFORM)/arch-$(<%=name%>_NDK_TOOLCHAIN_ARCH)/usr/lib,-dynamic-linker=/system/bin/linker \
+			-L$(<%=name%>_NDK_PLATFORM)/arch-$(<%=name%>_NDK_TOOLCHAIN_ARCH)/usr/lib
+<%=name%>_CFLAGS=$(ARM_CFLAGS) $(<%=name%>_EXTRA_CFLAGS) $(SECURITY_CFLAGS) -DMONODROID=1
+<%=name%>_CXXFLAGS=$(ARM_CXXFLAGS) $(<%=name%>_EXTRA_CFLAGS) $(SECURITY_CFLAGS) -DMONODROID=1
+<%=name%>_CC=$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-$(CC_NAME)
+<%=name%>_CXX=$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-$(CXX_NAME)
+<%=name%>_CPP=$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-cpp $(<%=name%>_EXTRA_CPPFLAGS)
+<%=name%>_CXXCPP=$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-cpp $(<%=name%>_EXTRA_CPPFLAGS)
+<%=name%>_LD=$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-ld
+<%=name%>_AS=$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-as
+<%=name%>_AR=$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-ar
+<%=name%>_RANLIB=$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-ranlib
+<%=name%>_STRIP=$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-strip
+<%=name%>_DLLTOOL=""
+<%=name%>_OBJDUMP="$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-objdump"
+
+<%=name%>_CONFIGURE_ENVIRONMENT = \
+	LDFLAGS="$(<%=name%>_LDFLAGS)"	\
+	CFLAGS="$(<%=name%>_CFLAGS)" \
+	CXXFLAGS="$(<%=name%>_CXXFLAGS) " \
+	CC="$(<%=name%>_CC)"	\
+	CXX="$(<%=name%>_CXX)" \
+	CPP="$(<%=name%>_CPP)"	\
+    CXXCPP="$(<%=name%>_CXXCPP)"	\
+	LD="$(<%=name%>_LD)"	\
+	AR="$(<%=name%>_AR)"	\
+	AS="$(<%=name%>_AS)"	\
+    RANLIB="$(<%=name%>_RANLIB)" \
+	STRIP="$(<%=name%>_STRIP)" \
+	DLLTOOL="$(<%=name%>_DLLTOOL)" \
+	OBJDUMP="$(<%=name%>_OBJDUMP)"
+
+.stamp-toolchain-$(<%=name%>_DIR):
+	$(NDK_PLATFORM_ROOT)/build/tools/make-standalone-toolchain.sh  --platform=$(<%=name%>_ANDROID_PLATFORM) --arch=$(<%=name%>_NDK_TOOLCHAIN_ARCH) --install-dir=toolchains/$(<%=name%>_DIR) --toolchain=$(<%=name%>_NDK_TOOLCHAIN_NAME) && \
+	touch .stamp-toolchain-$(<%=name%>_DIR)
+
+setup-toolchain-$(<%=name%>_DIR): .stamp-toolchain-$(<%=name%>_DIR)
+.PHONY: setup-toolchain-$(<%=name%>_DIR)
+
+setup-toolchain:: .stamp-toolchain-$(<%=name%>_DIR)
+
+.stamp-configure-$(<%=name%>_DIR): $(MONO_SOURCE_PATH)/configure .stamp-toolchain-$(<%=name%>_DIR)
+	mkdir -p $(<%=name%>_DIR) &&	\
+	pushd $(<%=name%>_DIR) && \
+	$(MONO_SOURCE_PATH)/configure $(<%=name%>_CONFIGURE_ENVIRONMENT) $(<%=name%>_CONFIGURE_FLAGS) && \
+	popd && \
+	touch .stamp-configure-$(<%=name%>_DIR)
+
+configure-$(<%=name%>_DIR): .stamp-configure-$(<%=name%>_DIR)
+.PHONY: configure-$(<%=name%>_DIR)
+
+echo-configure::
+	@echo $(MONO_SOURCE_PATH)/configure $(<%=name%>_CONFIGURE_ENVIRONMENT) $(<%=name%>_CONFIGURE_FLAGS)
+
+configure:: configure-$(<%=name%>_DIR)
+
+build-$(<%=name%>_DIR): configure-$(<%=name%>_DIR)
+	pushd $(<%=name%>_DIR) && \
+	make -j 12 && \
+	popd
+.PHONY: build-$(<%=name%>_DIR)
+
+build:: build-$(<%=name%>_DIR)

@@ -22,28 +22,6 @@ public class AndroidRunner extends Activity
 {
 	Handler the_handler;
 
-	public void updateTheButton () {
-		// Log.w ("MONO", "CHECKING STATUS!");
-		String s = send ("status", "tests");
-		final TextView tv = (TextView)findViewById (R.id.text);
-		if (!s.equals ("NO RUN"))
-			tv.setText (s);
-		if (s.equals ("IN-PROGRESS"))
-			the_handler.postDelayed(
-				new Runnable () {
-					public void run () {
-						updateTheButton ();
-					}
-				},
-				1000);
-	}
-
-	static String mkstr (CharSequence cq) {
-		StringBuilder sb = new StringBuilder ();
-		sb.append (cq);
-		return sb.toString();
-	}
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -57,15 +35,9 @@ public class AndroidRunner extends Activity
 		final TextView ed = (EditText)findViewById (R.id.input);
 		the_handler = new Handler (this.getMainLooper());
 
-		b.setOnClickListener(
-			new View.OnClickListener () {
-				public void onClick(View v) {
-					String input_str = mkstr (ed.getText ());
-					tv.setText (send ("start", input_str));
-					updateTheButton ();
-				}
-			});
 		setupRuntime (this);
+
+		Log.w ("MONO", "Calling someMethod (): " + someMethod ());
 	}
 
 	void copy (InputStream in, OutputStream out) throws IOException {
@@ -113,7 +85,7 @@ public class AndroidRunner extends Activity
 		copyAssetDir (am, "mconfig", filesDir + "/mono/2.1");
 
 		init (filesDir, cacheDir, dataDir, assemblyDir);
-		execMain ();
+		Log.w ("MONO", "INIT DONE");
 	}
 
 	static String getNativeLibraryPath (Context context) {
@@ -127,8 +99,7 @@ public class AndroidRunner extends Activity
 	}
 
 	native void init(String path0, String path1, String path2, String path3);
-	native int execMain ();
-	native String send (String key, String value);
+	native String someMethod ();
 
 	static {
 		System.loadLibrary("runtime-bootstrap");

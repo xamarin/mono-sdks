@@ -300,7 +300,7 @@ Java_org_mono_android_AndroidRunner_init (JNIEnv* env, jobject _this, jstring pa
 }
 
 int
-Java_org_mono_android_AndroidRunner_execMain (JNIEnv* env, jobject _this)
+Java_org_mono_android_AndroidRunner_someMethod (JNIEnv* env, jobject _this)
 {
 	int argc = 1;
 	char *argv[] = { "main.exe" };
@@ -311,56 +311,30 @@ Java_org_mono_android_AndroidRunner_execMain (JNIEnv* env, jobject _this)
 	sprintf (buff, "%s/%s", assemblies_dir, main_assembly_name);
 	main_assembly = mono_assembly_open (buff, NULL);
 	
-	mono_runtime_set_main_args (argc, argv);
+	void **params = NULL;
 
-	return 0;
-}
-
-static MonoMethod *send_method;
-
-jstring
-Java_org_mono_android_AndroidRunner_send (JNIEnv* env, jobject thiz, jstring key, jstring val)
-{
-	jboolean key_copy, val_copy;
-	const char *key_buff = (*env)->GetStringUTFChars (env, key, &key_copy);
-	const char *val_buff = (*env)->GetStringUTFChars (env, val, &val_copy);
-
-	mono_thread_attach (root_domain);
-
-	void * params[] = {
-		mono_string_new (mono_domain_get (), key_buff),
-		mono_string_new (mono_domain_get (), val_buff),
-	};
-
-	if (!send_method) {
-		MonoClass *driver_class = mono_class_from_name (mono_assembly_get_image (main_assembly), "", "Driver");
-		send_method = mono_class_get_method_from_name (driver_class, "Send", -1);
-	}
+	MonoClass *driver_class = mono_class_from_name (mono_assembly_get_image (main_assembly), "", "Driver");
+	MonoMethod *some_method = mono_class_get_method_from_name (driver_class, "SomeMethod", -1);
 
 	MonoException *exc = NULL;
-	MonoString *res = (MonoString *)mono_runtime_invoke (send_method, NULL, params, (MonoObject**)&exc);
+	MonoString *res = (MonoString *) mono_runtime_invoke (some_method, NULL, params, (MonoObject **) &exc);
 	jstring java_result;
+
+	MonoException *second_exc = NULL;
 	if (exc) {
-		MonoException *second_exc = NULL;
-		res = mono_object_to_string ((MonoObject*)exc, (MonoObject**)&second_exc);
+		res = mono_object_to_string ((MonoObject *) exc, (MonoObject **) &second_exc);
 		if (second_exc)
 			res = mono_string_new (mono_domain_get (), "DOUBLE FAULTED EXCEPTION");
 	}
 
 	if (res) {
 		char *str = mono_string_to_utf8 (res);
-		// _log ("SEND RETURNED: %s\n", str);
+		_log ("SomeMethod RETURNED: %s\n", str);
 		java_result = (*env)->NewStringUTF (env, str);
 		mono_free (str);
 	} else {
 		java_result = (*env)->NewStringUTF (env, "<NULL>");
 	}
-
-	if (key_copy)
-		(*env)->ReleaseStringUTFChars (env, key, key_buff);
-
-	if (val_copy)
-		(*env)->ReleaseStringUTFChars (env, val, val_buff);
 
 	return java_result;
 }

@@ -5,9 +5,11 @@ using System.Threading;
 using System.Reflection;
 
 public class Driver {
+	public static void Main (string [] args) {
+		return;
+	}
 
-	public static int Main () {
-		Console.WriteLine ("hello");
-		return 0;
+	public static string SomeMethod () {
+		return "Hello Android";
 	}
 }

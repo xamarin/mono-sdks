@@ -22,14 +22,25 @@ SECURITY_CFLAGS = -Wl,-z,now -Wl,-z,relro -Wl,-z,noexecstack -fstack-protector
 ARM_CFLAGS=$(COMMON_CFLAGS) -D__POSIX_VISIBLE=201002 -DSK_RELEASE -DNDEBUG -UDEBUG -fpic
 ARM_CXXFLAGS=$(ARM_CFLAGS)
 
+ARM64_CFLAGS=$(COMMON_CFLAGS) -D__POSIX_VISIBLE=201002 -DSK_RELEASE -DNDEBUG -UDEBUG -fpic
+ARM64_CXXFLAGS=$(ARM64_CFLAGS)
 
-armv7-android-generated.mk aarch64-android-generated.mk: android-template.rb android.erb
+X86_CFLAGS=$(COMMON_CFLAGS)
+X86_CXXFLAGS=$(X86_CFLAGS)
+
+X86_64_CFLAGS=$(COMMON_CFLAGS)
+X86_64_CXXFLAGS=$(X86_64_CFLAGS)
+
+armv7-android-generated.mk aarch64-android-generated.mk x86-android-generated.mk x86_64-android-generated.mk: android-template.rb android.erb
 	ruby android-template.rb
 
 include armv7-android-generated.mk
 include aarch64-android-generated.mk
+include x86-android-generated.mk
+include x86_64-android-generated.mk
 
-$(MONO_SOURCE_PATH)/configure: $(MONO_SOURCE_PATH)/configure.ac Makefile
+# $(MONO_SOURCE_PATH)/configure: $(MONO_SOURCE_PATH)/configure.ac Makefile
+$(MONO_SOURCE_PATH)/configure: $(MONO_SOURCE_PATH)/configure.ac
 	pushd $(MONO_SOURCE_PATH) &&	\
 	NOCONFIGURE=1 ./autogen.sh && \
 	popd

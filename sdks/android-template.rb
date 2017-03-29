@@ -12,6 +12,7 @@ class AndroidTemplateVar
   attr_accessor :cflags
   attr_accessor :cppflags
   attr_accessor :filename
+  attr_accessor :plat
 
   def initialize()
     @template = File.read("android.erb")
@@ -40,6 +41,7 @@ env.ldflags="-Wl,--fix-cortex-a8"
 env.cflags="-mtune=cortex-a8 -march=armv7-a -mfpu=vfp -mfloat-abi=softfp"
 env.cppflags="-I$(#{env.name}_NDK_PLATFORM)/arch-#{env.toolchain_arch}/usr/include/"
 env.filename="armv7-android-generated.mk"
+env.plat = "ARM"
 env.run
 
 env = AndroidTemplateVar.new
@@ -54,5 +56,36 @@ env.ldflags=""
 env.cflags="-DL_cuserid=9 -DANDROID64"
 env.cppflags=""
 env.filename="aarch64-android-generated.mk"
+env.plat = "ARM64"
+env.run
+
+env = AndroidTemplateVar.new
+env.platform="android-9"
+env.name="android_x86"
+env.dir="x86-android"
+env.abi_name="i686-linux-android"
+env.toolchain_name="x86-clang"
+env.toolchain_arch="x86"
+env.host_triple="i686-linux-android"
+env.ldflags=""
+env.cflags=""
+env.cppflags=""
+env.filename="x86-android-generated.mk"
+env.plat = "X86"
+env.run
+
+env = AndroidTemplateVar.new
+env.platform="android-21"
+env.name="android_x86_64"
+env.dir="x86_64-android"
+env.abi_name="x86_64-linux-android"
+env.toolchain_name="x86_64-clang"
+env.toolchain_arch="x86_64"
+env.host_triple="x86_64-linux-android"
+env.ldflags=""
+env.cflags="-DL_cuserid=9"
+env.cppflags=""
+env.filename="x86_64-android-generated.mk"
+env.plat = "X86_64"
 env.run
 

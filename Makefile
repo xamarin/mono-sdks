@@ -1,57 +1,8 @@
 TOP=$(CURDIR)
 include $(TOP)/paths.mk
 
-ADB       = $(SDK_DIR)/platform-tools/adb
-ANDROID   = $(SDK_DIR)/tools/android
-ANT       = ant
-NDK_BUILD = $(NDK_DIR)/ndk-build
-
-PACKAGE   = org.mono.android.AndroidTestRunner
-ACTIVITY  = org.mono.android.AndroidRunner
-
 all:
-	make -C sdks all
-	make -C managed all
-	$(NDK_BUILD)
-	$(ANT) debug
-	$(ANT) release
-
-stage-sdk:
-	mkdir -p jni/armeabi-v7a
-	mkdir -p jni/arm64-v8a
-	cp out/armv7-android/* jni/armeabi-v7a/
-	cp out/aarch64-android/* jni/arm64-v8a/
-	mkdir -p assets/mconfig
-	cp machine.config assets/mconfig
-
-app: stage-sdk
-	make -C managed all
-	$(NDK_BUILD)
-	$(ANT) debug
-
-clean:
-	$(ANT) clean
-
-deploy:
-	$(ADB) install bin/AndroidRunner-debug.apk
-
-undeploy:
-	$(ADB) uninstall $(PACKAGE)
-
-run:
-	$(ADB) shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER $(PACKAGE)/$(ACTIVITY)
-
-kill:
-	$(ADB) shell am force-stop $(PACKAGE)
-
-setup:
-	$(ANDROID) update project -p . -t "android-14"
-
-logcat:
-	$(ADB) logcat
-
-shell:
-	$(ADB) shell
-
+	make -C sdks all &&	\
+	make -C android all
 
 .PHONY: clean

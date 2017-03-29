@@ -11,6 +11,7 @@ Build scripts and sample apps for mono targeting its supported platforms.
 
 - Build nunit-lite as part of the bcl build and ship it there
 - Build all test suites as part of the sdk itself
+- Move the ARM_CFLAGS & friends to the android makefile generator
 
 ## Android
 

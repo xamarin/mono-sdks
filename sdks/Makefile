@@ -62,27 +62,20 @@ build-bcl: config-bcl
 	make -j12 && \
 	popd
 
-setup-out:
+setup-out::
 	mkdir -p $(TOP)/out
-	mkdir -p $(TOP)/out/armv7-android
-	mkdir -p $(TOP)/out/aarch64-android
 	mkdir -p $(TOP)/out/bcl
-
 
 package-bcl: setup-out
 	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.dll $(TOP)/out/bcl
 	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.pdb $(TOP)/out/bcl
 
-
-package-runtimes: setup-out
-	cp armv7-android/mono/mini/.libs/libmonosgen-2.0.so $(TOP)/out/armv7-android/
-	cp aarch64-android/mono/mini/.libs/libmonosgen-2.0.so $(TOP)/out/aarch64-android
-	cp armv7-android/support/.libs/*.so $(TOP)/out/armv7-android/
-	cp aarch64-android/support/.libs/*.so $(TOP)/out/aarch64-android/
+package-runtimes:: setup-out
 
 package: package-runtimes package-bcl
 	@echo Packaging mono
 
+.PHONY: package package-rumtimes package-bcl
 
 all:
 	make -C $(CURDIR) build build-bcl && \

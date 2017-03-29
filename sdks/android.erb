@@ -86,3 +86,16 @@ build-$(<%=name%>_DIR): configure-$(<%=name%>_DIR)
 .PHONY: build-$(<%=name%>_DIR)
 
 build:: build-$(<%=name%>_DIR)
+
+setup-<%=dir%>:
+	mkdir -p $(TOP)/out/<%=dir%>
+.PHONY: setup-<%=dir%>
+
+setup-out:: setup-<%=dir%>
+
+package-<%=dir%>: setup-<%=dir%>
+	cp <%=dir%>/mono/mini/.libs/libmonosgen-2.0.so $(TOP)/out/<%=dir%>/ && \
+	cp <%=dir%>/support/.libs/libMonoPosixHelper.so $(TOP)/out/<%=dir%>/
+.PHONY: package-<%=dir%>
+
+package-runtimes:: package-<%=dir%>

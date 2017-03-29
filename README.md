@@ -4,6 +4,12 @@ Build scripts and sample apps for mono targeting its supported platforms.
 
 ...
 
+# Android NDK
+
+- Mac OS X: [android-ndk-r11c-darwin-x86_64.zip](https://dl.google.com/android/repository/android-ndk-r11c-darwin-x86_64.zip). sha1: 4ce8e7ed8dfe08c5fe58aedf7f46be2a97564696
+- Linux 64-bit: [android-ndk-r11c-linux-x86_64.zip](https://dl.google.com/android/repository/android-ndk-r11c-linux-x86_64.zip). sha1: de5ce9bddeee16fb6af2b9117e9566352aa7e279
+
+
 
 # Open Tasks
 

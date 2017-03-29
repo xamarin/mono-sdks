@@ -7,6 +7,11 @@ Build scripts and sample apps for mono targeting its supported platforms.
 
 # Open Tasks
 
+## SDKs
+
+- Build nunit-lite as part of the bcl build and ship it there
+- Build all test suites as part of the sdk itself
+
 ## Android
 
 - Add remaining Android targets

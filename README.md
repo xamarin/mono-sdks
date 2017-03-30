@@ -21,7 +21,7 @@ Build scripts and sample apps for mono targeting its supported platforms.
 
 ## Android
 
-- Add android SDK probing ~/Library/Developer/Xamarin/android-sdk-macosx
+- Add android SDK probing ~/Library/Developer/Xamarin/android-sdk-macosx.  Figure out if we should switch to Android Studio for SDK related stuff (Google got rid of the old SDK scheme).
 - Add remaining Android targets
 - Make the bcl build use the same setup as the android targets
 - Add cross-compiler targets for Android

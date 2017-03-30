@@ -4,7 +4,7 @@ include $(TOP)/paths.mk
 SDKS_PATH=$(CURDIR)
 IS_RELEASE=true
 
-NDK_PLATFORM_ROOT=/Users/kumpera/android-ndk-r11c
+NDK_PLATFORM_ROOT=$(NDK_DIR)
 CC_NAME=clang
 CXX_NAME=clang++
 

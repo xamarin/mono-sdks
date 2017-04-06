@@ -19,8 +19,12 @@ all: setup stage-sdk
 stage-sdk:
 	mkdir -p jni/armeabi-v7a
 	mkdir -p jni/arm64-v8a
+	mkdir -p jni/x86
+	mkdir -p jni/x86_64
 	cp $(TOP)/out/armv7-android/* jni/armeabi-v7a/
 	cp $(TOP)/out/aarch64-android/* jni/arm64-v8a/
+	cp $(TOP)/out/x86-android/* jni/x86/
+	cp $(TOP)/out/x86_64-android/* jni/x86_64/
 	mkdir -p assets/mconfig
 	cp machine.config assets/mconfig
 

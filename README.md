@@ -26,6 +26,18 @@ Build scripts and sample apps for mono targeting its supported platforms.
 - Make the bcl build use the same setup as the android targets
 - Add cross-compiler targets for Android
 
+### XTC specifics
+
+Most Android devices are crap for testing, so we hand pick those that produce reliable and useful results.
+
+Here's the device set to pick in general:
+
+arm32: HTC One
+aarch64: Google Pixel
+x86_32: Acer Iconia A1-830
+
+
+
 ## iOS
 
 Everything
@@ -33,4 +45,5 @@ Everything
 ## General
 
 Write the iOS driver.
+
 

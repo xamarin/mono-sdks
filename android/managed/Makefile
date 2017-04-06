@@ -2,7 +2,7 @@ TOP=$(realpath $(CURDIR)/../..)
 include $(TOP)/paths.mk
 
 BCL_DIR=$(TOP)/out/bcl
-ASSETS_DIR=$(TOP)/assets/asm
+ASSETS_DIR=$(TOP)/android/assets/asm
 
 MINI_TEST_FILES= \
 	TestDriver.cs	\

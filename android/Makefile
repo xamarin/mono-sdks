@@ -38,6 +38,10 @@ deploy:
 undeploy:
 	$(ADB) uninstall $(PACKAGE)
 
+redeploy:
+	$(ADB) uninstall $(PACKAGE)
+	$(ADB) install bin/AndroidRunner-debug.apk
+
 run:
 	$(ADB) shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER $(PACKAGE)/$(ACTIVITY)
 

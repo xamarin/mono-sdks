@@ -48,10 +48,10 @@ $(MONO_SOURCE_PATH)/configure: $(MONO_SOURCE_PATH)/configure.ac
 configure-mono: $(MONO_SOURCE_PATH)/configure
 .PHONY: configure-mono
 
-.stamp-bcl-configure: $(MONO_SOURCE_PATH)/configure
+.stamp-bcl-configure: $(MONO_SOURCE_PATH)/configure Makefile
 	mkdir -p $(SDKS_PATH)/bcl &&	\
 	pushd $(SDKS_PATH)/bcl && \
-	$(MONO_SOURCE_PATH)/configure --with-monodroid=yes  --with-profile4_x=no --with-mcs-docs=no --disable-btls --disable-nls && \
+	$(MONO_SOURCE_PATH)/configure --with-monodroid=yes --with-monotouch=yes  --with-profile4_x=no --with-mcs-docs=no --disable-btls --disable-nls && \
 	popd && \
 	touch $@
 
@@ -65,10 +65,12 @@ build-bcl: config-bcl
 setup-out::
 	mkdir -p $(TOP)/out
 	mkdir -p $(TOP)/out/bcl
+	mkdir -p $(TOP)/out/bcl/monodroid
+	mkdir -p $(TOP)/out/bcl/monotouch
 
 package-bcl: setup-out
-	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.dll $(TOP)/out/bcl
-	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.pdb $(TOP)/out/bcl
+	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.{pdb,dll} $(TOP)/out/bcl/monodroid
+	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monotouch/*.{pdb,dll} $(TOP)/out/bcl/monotouch
 
 package-runtimes:: setup-out
 

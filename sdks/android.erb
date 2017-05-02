@@ -25,8 +25,8 @@
 <%=name%>_LDFLAGS=$(COMMON_LDFLAGS) $(<%=name%>_EXTRA_LDFLAGS) \
 			-Wl,-rpath-link=$(<%=name%>_NDK_PLATFORM)/arch-$(<%=name%>_NDK_TOOLCHAIN_ARCH)/usr/lib,-dynamic-linker=/system/bin/linker \
 			-L$(<%=name%>_NDK_PLATFORM)/arch-$(<%=name%>_NDK_TOOLCHAIN_ARCH)/usr/lib
-<%=name%>_CFLAGS=$(ARM_CFLAGS) $(<%=name%>_EXTRA_CFLAGS) $(SECURITY_CFLAGS) -DMONODROID=1
-<%=name%>_CXXFLAGS=$(ARM_CXXFLAGS) $(<%=name%>_EXTRA_CFLAGS) $(SECURITY_CFLAGS) -DMONODROID=1
+<%=name%>_CFLAGS=$(<%=plat%>_CFLAGS) $(<%=name%>_EXTRA_CFLAGS) $(SECURITY_CFLAGS) -DMONODROID=1
+<%=name%>_CXXFLAGS=$(<%=plat%>_CXXFLAGS) $(<%=name%>_EXTRA_CFLAGS) $(SECURITY_CFLAGS) -DMONODROID=1
 <%=name%>_CC=$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-$(CC_NAME)
 <%=name%>_CXX=$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-$(CXX_NAME)
 <%=name%>_CPP=$(<%=name%>_TOOLCHAIN_BIN_DIR)/$(<%=name%>_NAME)-cpp $(<%=name%>_EXTRA_CPPFLAGS)
@@ -86,3 +86,16 @@ build-$(<%=name%>_DIR): configure-$(<%=name%>_DIR)
 .PHONY: build-$(<%=name%>_DIR)
 
 build:: build-$(<%=name%>_DIR)
+
+setup-<%=dir%>:
+	mkdir -p $(TOP)/out/<%=dir%>
+.PHONY: setup-<%=dir%>
+
+setup-out:: setup-<%=dir%>
+
+package-<%=dir%>: setup-<%=dir%>
+	cp <%=dir%>/mono/mini/.libs/libmonosgen-2.0.so $(TOP)/out/<%=dir%>/ && \
+	cp <%=dir%>/support/.libs/libMonoPosixHelper.so $(TOP)/out/<%=dir%>/
+.PHONY: package-<%=dir%>
+
+package-runtimes:: package-<%=dir%>

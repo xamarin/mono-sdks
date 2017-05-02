@@ -12,5 +12,6 @@
 #include <stdio.h>
 
 void init_runtime (void);
+char* runtime_send_message (const char *key, const char *value);
 
 #endif /* runtime_bootstrap_h */

@@ -223,9 +223,13 @@ runtime_send_message (const char *key, const char *value)
 			res = mono_string_new (mono_domain_get (), "DOUBLE FAULTED EXCEPTION");
 	}
 
+	char *str_res = NULL;
 	if (res)
-		return mono_string_to_utf8 (res);
-	return strdup ("<NULL>");
+		str_res = mono_string_to_utf8 (res);
+	else
+		str_res = strdup ("<NULL>");
+	_log ("SEND MESSAGE RES: %s", str_res);
+	return str_res;
 }
 
 void
@@ -264,6 +268,6 @@ init_runtime (void)
 	_log ("READY");
 	set_main ();
 
-	_log ("DOING IT");
-	_log ("RETURNED %s\n", runtime_send_message ("hello", "world"));
+	// _log ("DOING IT");
+	// _log ("RETURNED %s\n", runtime_send_message ("hello", "world"));
 }

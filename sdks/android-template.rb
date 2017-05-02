@@ -30,7 +30,7 @@ end
 
 
 env = AndroidTemplateVar.new
-env.platform="android-4"
+env.platform="android-9"
 env.name="android_armv7"
 env.dir="armv7-android"
 env.abi_name="arm-linux-androideabi"

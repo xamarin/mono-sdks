@@ -25,12 +25,13 @@ ARM_CFLAGS=$(COMMON_CFLAGS) -D__POSIX_VISIBLE=201002 -DSK_RELEASE -DNDEBUG -UDEB
 ARM_CXXFLAGS=$(ARM_CFLAGS)
 
 
-armv7-android-generated.mk aarch64-android-generated.mk: android-template.rb android.erb
+armv7-android-generated.mk aarch64-android-generated.mk x86-android-generated.mk x86_64-android-generated.mk: android-template.rb android.erb
 	ruby android-template.rb
 
 include armv7-android-generated.mk
-include aarch64-android-generated.mk
-# include aarch64-android.mk
+# include aarch64-android-generated.mk
+include x86-android-generated.mk
+# include x86_64-android-generated.mk
 
 
 # $(MONO_SOURCE_PATH)/configure: $(MONO_SOURCE_PATH)/configure.ac Makefile
@@ -51,23 +52,19 @@ build-bcl: config-bcl
 	make -j12 && \
 	popd
 
-setup-out:
+setup-out::
 	mkdir -p $(TOP)/out
-	mkdir -p $(TOP)/out/armv7-android
-	mkdir -p $(TOP)/out/aarch64-android
 	mkdir -p $(TOP)/out/bcl
 
+package-bcl: setup-out
+	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.dll $(TOP)/out/bcl
+	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.pdb $(TOP)/out/bcl
 
+package-runtimes:: setup-out
 package-bcl: setup-out
 	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.dll $(TOP)/out/bcl
 	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.pdb $(TOP)/out/bcl || true
 
-
-package-runtimes: setup-out
-	cp armv7-android/mono/mini/.libs/libmonosgen-2.0.so $(TOP)/out/armv7-android/
-	cp aarch64-android/mono/mini/.libs/libmonosgen-2.0.so $(TOP)/out/aarch64-android
-	cp armv7-android/support/.libs/*.so $(TOP)/out/armv7-android/
-	cp aarch64-android/support/.libs/*.so $(TOP)/out/aarch64-android/
 
 package: package-runtimes package-bcl
 	@echo Packaging mono

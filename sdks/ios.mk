@@ -237,7 +237,6 @@ configure-sim64: .stamp-configure-ios-sim64
 configure:: .stamp-configure-ios-sim64
 
 
-
 CROSS_CC=$(CCACHE)$(PLATFORM_BIN)/clang -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk -mmacosx-version-min=10.11
 CROSS_CXX=$(CCACHE)$(PLATFORM_BIN)/clang++ -isysroot (XCODE_DEVELOPER_ROOT)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk -mmacosx-version-min=10.11
 CROSS_CFLAGS= -DMONOTOUCH  -Qunused-arguments -mmacosx-version-min=10.8
@@ -305,3 +304,38 @@ CROSS64_CONFIGURE_ENVIRONMENT =	\
 
 configure-ios-cross64: .stamp-configure-ios-cross64
 configure:: .stamp-configure-ios-cross64
+
+
+$(MONO_SOURCE_PATH)/tools/offsets-tool/MonoAotOffsetsDumper.exe: $(wildcard $(MONO_SOURCE_PATH)/tools/offsets-tool/*.cs)
+	make -C $(dir $@) MonoAotOffsetsDumper.exe
+
+compile-offsets-tool: $(MONO_SOURCE_PATH)/tools/offsets-tool/MonoAotOffsetsDumper.exe
+
+ios-cross32/arm-apple-darwin10.h: .stamp-configure-ios-armv7 $(MONO_SOURCE_PATH)/tools/offsets-tool/MonoAotOffsetsDumper.exe
+	mkdir -p ios-cross32 &&	\
+	MONO_PATH=$(MONO_SOURCE_PATH)/tools/offsets-tool/CppSharp/osx_32 \
+	mono --arch=32 --debug $(MONO_SOURCE_PATH)/tools/offsets-tool/MonoAotOffsetsDumper.exe \
+	--abi arm-apple-darwin10 --platform ios --out ios-cross32/ --mono ../external/mono/ --targetdir ios-armv7
+
+offsets-ios-cross32: ios-cross32/arm-apple-darwin10.h
+
+ios-cross64/aarch64-apple-darwin10.h: .stamp-configure-ios-arm64 $(MONO_SOURCE_PATH)/tools/offsets-tool/MonoAotOffsetsDumper.exe
+	mkdir -p ios-cross64 &&	\
+	MONO_PATH=$(MONO_SOURCE_PATH)/tools/offsets-tool/CppSharp/osx_32 \
+	mono --arch=32 --debug $(MONO_SOURCE_PATH)/tools/offsets-tool/MonoAotOffsetsDumper.exe \
+	--abi aarch64-apple-darwin10 --platform ios --out ios-cross64/ --mono ../external/mono/ --targetdir ios-arm64
+
+offsets-ios-cross64: ios-cross64/aarch64-apple-darwin10.h
+
+
+build-ios-cross32: configure-ios-cross32 offsets-ios-cross32
+	pushd ios-cross32 && \
+	make -j 4 && \
+	popd
+
+build-ios-cross64: configure-ios-cross64 offsets-ios-cross64
+	pushd ios-cross64 && \
+	make -j 4 && \
+	popd
+
+build-ios-cross: build-ios-cross32 build-ios-cross64

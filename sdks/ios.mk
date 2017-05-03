@@ -4,42 +4,41 @@ SDKS_PATH=$(CURDIR)
 
 XCODE_DEVELOPER_ROOT=/Applications/Xcode.app/Contents/Developer
 PLATFORM_BIN=$(XCODE_DEVELOPER_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin
+IPHONEOS_VERSION=iPhoneOS10.3.sdk
 
-IPHONEOS_VERSION=iPhoneOS10.2.sdk
+ARMV7_CONFIGURE_FLAGS_I_DONT_CARE= --enable-llvm-runtime --with-bitcode=yes --enable-extension-module=xamarin
+#ARMV7_BITCODE_MARKER=-fembed-bitcode-marker
 
-CONFIGURE_FLAGS_I_DONT_CARE= --enable-llvm-runtime --with-bitcode=yes --enable-extension-module=xamarin
-#BITCODE_MARKER=-fembed-bitcode-marker
+ARMV7_AC_VARS=mono_cv_uscore=yes mono_cv_sizeof_sunpath=104 ac_cv_func_posix_getpwuid_r=yes ac_cv_func_finite=no ac_cv_c_bigendian=no ac_cv_header_sys_user_h=no ac_cv_header_curses_h=no ac_cv_header_localcharset_h=no ac_cv_func_getpwuid_r=no
 
-AC_VARS=mono_cv_uscore=yes mono_cv_sizeof_sunpath=104 ac_cv_func_posix_getpwuid_r=yes ac_cv_func_finite=no ac_cv_c_bigendian=no ac_cv_header_sys_user_h=no ac_cv_header_curses_h=no ac_cv_header_localcharset_h=no ac_cv_func_getpwuid_r=no
+ARMV7_TARGET_CPPFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch armv7
 
-TARGET_CPPFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch armv7
+ARMV7_TARGET_CFLAGS=-O2 -gdwarf-2 -DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -fexceptions $(ARMV7_BITCODE_MARKER)
 
-TARGET_CFLAGS=-O2 -gdwarf-2 -DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -O0 -fexceptions $(BITCODE_MARKER)
+ARMV7_TARGET_CXXFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch armv7 -fexceptions $(ARMV7_BITCODE_MARKER)
 
-TARGET_CXXFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch armv7 -fexceptions $(BITCODE_MARKER)
+ARMV7_TARGET_LDFLAGS=-arch armv7 -framework CoreFoundation -lobjc -lc++ -Wl,-no_weak_imports
 
-TARGET_LDFLAGS=-arch armv7 -framework CoreFoundation -lobjc -lc++ -Wl,-no_weak_imports
+ARMV7_TARGET_CC=$(CCACHE)$(PLATFORM_BIN)/clang
+ARMV7_TARGET_CXX=$(CCACHE)$(PLATFORM_BIN)/clang++
 
-TARGET_CC=$(CCACHE)$(PLATFORM_BIN)/clang
-TARGET_CXX=$(CCACHE)$(PLATFORM_BIN)/clang++
-
-CONFIGURE_ENVIRONMENT =	\
-	CC="$(TARGET_CC)"	\
-	CXX="$(TARGET_CXX)"	\
-	CFLAGS="$(TARGET_CFLAGS)"	\
-	CPPFLAGS="$(TARGET_CPPFLAGS)"	\
-	CXXFLAGS="$(TARGET_CXXFLAGS)"	\
-	LDFLAGS="$(TARGET_LDFLAGS)"
+ARMV7_CONFIGURE_ENVIRONMENT =	\
+	CC="$(ARMV7_TARGET_CC)"	\
+	CXX="$(ARMV7_TARGET_CXX)"	\
+	CFLAGS="$(ARMV7_TARGET_CFLAGS)"	\
+	CPPFLAGS="$(ARMV7_TARGET_CPPFLAGS)"	\
+	CXXFLAGS="$(ARMV7_TARGET_CXXFLAGS)"	\
+	LDFLAGS="$(ARMV7_TARGET_LDFLAGS)"
 
 
-CONFIGURE_INSTALL_FLAGS = --cache-file=$(SDKS_PATH)/ios-armv7.config.cache --prefix=$(SDKS_PATH)/install/ios-target7
+ARMV7_CONFIGURE_INSTALL_FLAGS = --cache-file=$(SDKS_PATH)/ios-armv7.config.cache --prefix=$(SDKS_PATH)/install/ios-target32
 
-CONFIGURE_FLAGS = \
+ARMV7_CONFIGURE_FLAGS = \
 	--build=i386-apple-darwin10 \
 	--host=arm-apple-darwin10 \
 	--disable-boehm \
 	--enable-maintainer-mode \
-	$(CONFIGURE_INSTALL_FLAGS) \
+	$(ARMV7_CONFIGURE_INSTALL_FLAGS) \
 	--with-monotouch \
 	--with-lazy-gc-thread-creation=yes \
 	--disable-mcs-build \
@@ -60,16 +59,78 @@ CONFIGURE_FLAGS = \
 .stamp-configure-ios-armv7: $(MONO_SOURCE_PATH)/configure
 	mkdir -p ios-armv7 &&	\
 	pushd ios-armv7 && \
-	PATH="$(PLATFORM_BIN):$$PATH" $(MONO_SOURCE_PATH)/configure $(AC_VARS) $(CONFIGURE_ENVIRONMENT) $(CONFIGURE_FLAGS) && \
+	PATH="$(PLATFORM_BIN):$$PATH" $(MONO_SOURCE_PATH)/configure $(ARMV7_AC_VARS) $(ARMV7_CONFIGURE_ENVIRONMENT) $(ARMV7_CONFIGURE_FLAGS) && \
 	popd && \
 	touch .stamp-configure-ios-armv7
 
+configure-armv7: .stamp-configure-ios-armv7
 configure:: .stamp-configure-ios-armv7
+
+
+ARM64_CONFIGURE_FLAGS_I_DONT_CARE= --enable-llvm-runtime --with-bitcode=yes --enable-extension-module=xamarin
+#ARM64_BITCODE_MARKER=-fembed-bitcode-marker
+
+ARM64_AC_VARS=mono_cv_uscore=yes mono_cv_sizeof_sunpath=104 ac_cv_func_posix_getpwuid_r=yes ac_cv_func_finite=no ac_cv_c_bigendian=no ac_cv_header_sys_user_h=no ac_cv_header_curses_h=no ac_cv_header_localcharset_h=no ac_cv_func_getpwuid_r=no
+
+ARM64_TARGET_CPPFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch arm64
+
+ARM64_TARGET_CFLAGS=-O2 -gdwarf-2 -DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -fexceptions $(ARM64_BITCODE_MARKER)
+
+ARM64_TARGET_CXXFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch arm64 -fexceptions $(ARM64_BITCODE_MARKER)
+
+ARM64_TARGET_LDFLAGS=-arch arm64 -framework CoreFoundation -lobjc -lc++ -Wl,-no_weak_imports
+
+ARM64_TARGET_CC=$(CCACHE)$(PLATFORM_BIN)/clang
+ARM64_TARGET_CXX=$(CCACHE)$(PLATFORM_BIN)/clang++
+
+ARM64_CONFIGURE_ENVIRONMENT =	\
+	CC="$(ARM64_TARGET_CC)"	\
+	CXX="$(ARM64_TARGET_CXX)"	\
+	CFLAGS="$(ARM64_TARGET_CFLAGS)"	\
+	CPPFLAGS="$(ARM64_TARGET_CPPFLAGS)"	\
+	CXXFLAGS="$(ARM64_TARGET_CXXFLAGS)"	\
+	LDFLAGS="$(ARM64_TARGET_LDFLAGS)"
+
+
+ARM64_CONFIGURE_INSTALL_FLAGS = --cache-file=$(SDKS_PATH)/ios-arm64.config.cache --prefix=$(SDKS_PATH)/install/ios-target64
+
+ARM64_CONFIGURE_FLAGS = \
+	--build=i386-apple-darwin10 \
+	--host=aarch64-apple-darwin10 \
+	--disable-boehm \
+	--enable-maintainer-mode \
+	$(ARM64_CONFIGURE_INSTALL_FLAGS) \
+	--with-monotouch \
+	--with-lazy-gc-thread-creation=yes \
+	--disable-mcs-build \
+	--enable-minimal=ssa,com,jit,reflection_emit_save,reflection_emit,portability,assembly_remapping,attach,verifier,full_messages,appdomains,security,sgen_remset,sgen_marksweep_par,sgen_marksweep_fixed,sgen_marksweep_fixed_par,sgen_copying,logging,remoting,shared_perfcounters \
+	--without-ikvm-native \
+	--with-tls=pthread \
+	--without-sigaltstack \
+	--enable-icall-export \
+	--disable-icall-tables \
+	--disable-executables \
+	--disable-nls \
+	--disable-iconv \
+	--disable-visibility-hidden \
+	--enable-dtrace=no \
+	--disable-btls
+
+
+.stamp-configure-ios-arm64: $(MONO_SOURCE_PATH)/configure
+	mkdir -p ios-arm64 &&	\
+	pushd ios-arm64 && \
+	PATH="$(PLATFORM_BIN):$$PATH" $(MONO_SOURCE_PATH)/configure $(ARM64_AC_VARS) $(ARM64_CONFIGURE_ENVIRONMENT) $(ARM64_CONFIGURE_FLAGS) && \
+	popd && \
+	touch .stamp-configure-ios-arm64
+
+configure-arm64: .stamp-configure-ios-arm64
+configure:: .stamp-configure-ios-arm64
 
 
 
 SIM32_PLATFORM=iPhoneSimulator.platform
-IPHONESIM_VERSION=iPhoneSimulator10.2.sdk
+IPHONESIM_VERSION=iPhoneSimulator10.3.sdk
 
 SIM32_CPPFLAGS=-arch i386 -O2 -DMONOTOUCH -DHOST_IOS -Wl,-application_extension -mios-simulator-version-min=6.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneSimulator.platform/Developer/SDKs/$(IPHONESIM_VERSION)
 
@@ -174,4 +235,12 @@ SIM64_CONFIGURE_ENVIRONMENT =	\
 
 configure-sim64: .stamp-configure-ios-sim64
 configure:: .stamp-configure-ios-sim64
+
+
+
+
+
+
+
+
 

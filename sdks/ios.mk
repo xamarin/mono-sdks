@@ -238,9 +238,53 @@ configure:: .stamp-configure-ios-sim64
 
 
 
+CROSS_CC=$(CCACHE)$(PLATFORM_BIN)/clang -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk -mmacosx-version-min=10.11
+CROSS_CXX=$(CCACHE)$(PLATFORM_BIN)/clang++ -isysroot (XCODE_DEVELOPER_ROOT)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk -mmacosx-version-min=10.11
+CROSS_CFLAGS= -DMONOTOUCH  -Qunused-arguments -mmacosx-version-min=10.8
+CROSS_CXXFLAGS=-DMONOTOUCH -Qunused-arguments -mmacosx-version-min=10.8 -stdlib=libc++
+CROSS_LDFLAGS=-stdlib=libc++ -Wl,-no_weak_imports
+
+CROSS_CONFIGURE_FLAGS_I_DONT_CARE= --enable-llvm --with-llvm=../llvm/usr
+CROSS_CONFIGURE_FLAGS= \
+	--build=i386-apple-darwin10	\
+	-with-glib=embedded \
+	--enable-minimal=com,remoting \
+	--disable-mcs-build \
+	--enable-icall-symbol-map \
+	--disable-nls \
+	--disable-iconv \
+	--disable-libraries \
+	--disable-boehm \
+	--disable-btls
+
+CROSS32_CONFIGURE_FLAGS = \
+	$(CROSS_CONFIGURE_FLAGS) \
+	--prefix=$(SDKS_PATH)/install/ios-cross32 \
+	--cache-file=$(SDKS_PATH)/ios-cross32.config.cache \
+	--target=arm-darwin \
+	--with-cross-offsets=arm-apple-darwin10.h
+
+CROSS64_CONFIGURE_FLAGS = \
+	$(CROSS_CONFIGURE_FLAGS) \
+	--prefix=$(SDKS_PATH)/install/ios-cross64 \
+	--cache-file=$(SDKS_PATH)/ios-cross64.config.cache \
+	--target=aarch64-darwin \
+	--with-cross-offsets=--with-cross-offsets=aarch64-apple-darwin10.h
 
 
+CROSS32_CONFIGURE_ENVIRONMENT =	\
+	CC="$(CROSS_CC)"	\
+	CXX="$(CROSS_CXX)"	\
+	CFLAGS="$(CROSS_CFLAGS)"	\
+	CXXFLAGS="$(CROSS_CXXFLAGS)"	\
+	LDFLAGS="$(CROSS_LDFLAGS)"
 
+.stamp-configure-ios-cross32: $(MONO_SOURCE_PATH)/configure
+	mkdir -p ios-cross32 &&	\
+	pushd ios-cross32 && \
+	PATH="$(PLATFORM_BIN):$$PATH" $(MONO_SOURCE_PATH)/configure $(CROSS32_AC_VARS) $(CROSS32_CONFIGURE_ENVIRONMENT) $(CROSS32_CONFIGURE_FLAGS) && \
+	popd && \
+	touch .stamp-configure-ios-cross32
 
-
-
+configure-ios-cross32: .stamp-configure-ios-cross32
+configure:: .stamp-configure-ios-cross32

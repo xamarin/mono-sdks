@@ -271,7 +271,6 @@ CROSS64_CONFIGURE_FLAGS = \
 	--target=aarch64-darwin \
 	--with-cross-offsets=--with-cross-offsets=aarch64-apple-darwin10.h
 
-
 CROSS32_CONFIGURE_ENVIRONMENT =	\
 	CC="$(CROSS_CC)"	\
 	CXX="$(CROSS_CXX)"	\
@@ -288,3 +287,21 @@ CROSS32_CONFIGURE_ENVIRONMENT =	\
 
 configure-ios-cross32: .stamp-configure-ios-cross32
 configure:: .stamp-configure-ios-cross32
+
+
+CROSS64_CONFIGURE_ENVIRONMENT =	\
+	CC="$(CROSS_CC)"	\
+	CXX="$(CROSS_CXX)"	\
+	CFLAGS="$(CROSS_CFLAGS)"	\
+	CXXFLAGS="$(CROSS_CXXFLAGS)"	\
+	LDFLAGS="$(CROSS_LDFLAGS)"
+
+.stamp-configure-ios-cross64: $(MONO_SOURCE_PATH)/configure
+	mkdir -p ios-cross64 &&	\
+	pushd ios-cross64 && \
+	PATH="$(PLATFORM_BIN):$$PATH" $(MONO_SOURCE_PATH)/configure $(CROSS64_AC_VARS) $(CROSS64_CONFIGURE_ENVIRONMENT) $(CROSS64_CONFIGURE_FLAGS) && \
+	popd && \
+	touch .stamp-configure-ios-cross64
+
+configure-ios-cross64: .stamp-configure-ios-cross64
+configure:: .stamp-configure-ios-cross64

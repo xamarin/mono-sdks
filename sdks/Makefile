@@ -69,8 +69,8 @@ setup-out::
 	mkdir -p $(TOP)/out/bcl/monotouch
 
 package-bcl: setup-out
-	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.{pdb,dll} $(TOP)/out/bcl/monodroid
-	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monotouch/*.{pdb,dll} $(TOP)/out/bcl/monotouch
+	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monodroid/*.dll $(TOP)/out/bcl/monodroid
+	cp $(MONO_SOURCE_PATH)/mcs/class/lib/monotouch/*.dll $(TOP)/out/bcl/monotouch
 
 package-runtimes:: setup-out
 

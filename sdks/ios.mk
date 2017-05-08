@@ -4,7 +4,7 @@ SDKS_PATH=$(CURDIR)
 
 XCODE_DEVELOPER_ROOT=/Applications/Xcode.app/Contents/Developer
 PLATFORM_BIN=$(XCODE_DEVELOPER_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin
-IPHONEOS_VERSION=iPhoneOS10.3.sdk
+IPHONEOS_VERSION=iPhoneOS.sdk
 
 ARMV7_CONFIGURE_FLAGS_I_DONT_CARE= --enable-llvm-runtime --with-bitcode=yes --enable-extension-module=xamarin
 #ARMV7_BITCODE_MARKER=-fembed-bitcode-marker
@@ -38,6 +38,7 @@ ARMV7_CONFIGURE_FLAGS = \
 	--host=arm-apple-darwin10 \
 	--disable-boehm \
 	--enable-maintainer-mode \
+	--enable-interpreter \
 	$(ARMV7_CONFIGURE_INSTALL_FLAGS) \
 	--with-monotouch \
 	--with-lazy-gc-thread-creation=yes \
@@ -99,6 +100,7 @@ ARM64_CONFIGURE_FLAGS = \
 	--host=aarch64-apple-darwin10 \
 	--disable-boehm \
 	--enable-maintainer-mode \
+	--enable-interpreter \
 	$(ARM64_CONFIGURE_INSTALL_FLAGS) \
 	--with-monotouch \
 	--with-lazy-gc-thread-creation=yes \
@@ -150,6 +152,7 @@ SIM32_CONFIGURE_FLAGS= \
 	--host=i386-apple-darwin10 \
 	$(SIM32_CONFIGURE_INSTALL_FLAGS) \
 	--enable-maintainer-mode \
+	--enable-interpreter \
 	--with-glib=embedded \
 	--without-ikvm-native \
 	--with-tls=pthread \
@@ -204,6 +207,7 @@ SIM64_CONFIGURE_FLAGS= \
 	--host=x86_64-apple-darwin10 \
 	$(SIM64_CONFIGURE_INSTALL_FLAGS) \
 	--enable-maintainer-mode \
+	--enable-interpreter \
 	--with-glib=embedded \
 	--without-ikvm-native \
 	--with-tls=pthread \
@@ -238,15 +242,15 @@ configure:: .stamp-configure-ios-sim64
 
 
 CROSS_CC=$(CCACHE)$(PLATFORM_BIN)/clang -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk -mmacosx-version-min=10.11
-CROSS_CXX=$(CCACHE)$(PLATFORM_BIN)/clang++ -isysroot (XCODE_DEVELOPER_ROOT)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk -mmacosx-version-min=10.11
+CROSS_CXX=$(CCACHE)$(PLATFORM_BIN)/clang++ -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk -mmacosx-version-min=10.11
 CROSS_CFLAGS= -DMONOTOUCH  -Qunused-arguments -mmacosx-version-min=10.8
 CROSS_CXXFLAGS=-DMONOTOUCH -Qunused-arguments -mmacosx-version-min=10.8 -stdlib=libc++
-CROSS_LDFLAGS=-stdlib=libc++ -Wl,-no_weak_imports
+CROSS_LDFLAGS=-stdlib=libc++
+# -Wl,-no_weak_imports
 
 CROSS_CONFIGURE_FLAGS_I_DONT_CARE= --enable-llvm --with-llvm=../llvm/usr
 CROSS_CONFIGURE_FLAGS= \
-	--build=i386-apple-darwin10	\
-	-with-glib=embedded \
+	--with-glib=embedded \
 	--enable-minimal=com,remoting \
 	--disable-mcs-build \
 	--enable-icall-symbol-map \
@@ -257,6 +261,7 @@ CROSS_CONFIGURE_FLAGS= \
 	--disable-btls
 
 CROSS32_CONFIGURE_FLAGS = \
+	--host=i386-apple-darwin10 \
 	$(CROSS_CONFIGURE_FLAGS) \
 	--prefix=$(SDKS_PATH)/install/ios-cross32 \
 	--cache-file=$(SDKS_PATH)/ios-cross32.config.cache \
@@ -264,11 +269,12 @@ CROSS32_CONFIGURE_FLAGS = \
 	--with-cross-offsets=arm-apple-darwin10.h
 
 CROSS64_CONFIGURE_FLAGS = \
+	--host=x86_64-apple-darwin10 \
 	$(CROSS_CONFIGURE_FLAGS) \
 	--prefix=$(SDKS_PATH)/install/ios-cross64 \
 	--cache-file=$(SDKS_PATH)/ios-cross64.config.cache \
 	--target=aarch64-darwin \
-	--with-cross-offsets=--with-cross-offsets=aarch64-apple-darwin10.h
+	--with-cross-offsets=aarch64-apple-darwin10.h
 
 CROSS32_CONFIGURE_ENVIRONMENT =	\
 	CC="$(CROSS_CC)"	\
@@ -315,7 +321,7 @@ ios-cross32/arm-apple-darwin10.h: .stamp-configure-ios-armv7 $(MONO_SOURCE_PATH)
 	mkdir -p ios-cross32 &&	\
 	MONO_PATH=$(MONO_SOURCE_PATH)/tools/offsets-tool/CppSharp/osx_32 \
 	mono --arch=32 --debug $(MONO_SOURCE_PATH)/tools/offsets-tool/MonoAotOffsetsDumper.exe \
-	--abi arm-apple-darwin10 --platform ios --out ios-cross32/ --mono ../external/mono/ --targetdir ios-armv7
+	--abi arm-apple-darwin10 --platform ios --out ios-cross32/ --mono $(MONO_SOURCE_PATH) --targetdir ios-armv7
 
 offsets-ios-cross32: ios-cross32/arm-apple-darwin10.h
 
@@ -323,7 +329,7 @@ ios-cross64/aarch64-apple-darwin10.h: .stamp-configure-ios-arm64 $(MONO_SOURCE_P
 	mkdir -p ios-cross64 &&	\
 	MONO_PATH=$(MONO_SOURCE_PATH)/tools/offsets-tool/CppSharp/osx_32 \
 	mono --arch=32 --debug $(MONO_SOURCE_PATH)/tools/offsets-tool/MonoAotOffsetsDumper.exe \
-	--abi aarch64-apple-darwin10 --platform ios --out ios-cross64/ --mono ../external/mono/ --targetdir ios-arm64
+	--abi aarch64-apple-darwin10 --platform ios --out ios-cross64/ --mono $(MONO_SOURCE_PATH) --targetdir ios-arm64
 
 offsets-ios-cross64: ios-cross64/aarch64-apple-darwin10.h
 

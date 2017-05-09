@@ -5,17 +5,18 @@ SDKS_PATH=$(CURDIR)
 XCODE_DEVELOPER_ROOT=/Applications/Xcode.app/Contents/Developer
 PLATFORM_BIN=$(XCODE_DEVELOPER_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin
 IPHONEOS_VERSION=iPhoneOS.sdk
+IOS_MIN_VERSION=8.0
 
 ARMV7_CONFIGURE_FLAGS_I_DONT_CARE= --enable-llvm-runtime --with-bitcode=yes --enable-extension-module=xamarin
 #ARMV7_BITCODE_MARKER=-fembed-bitcode-marker
 
 ARMV7_AC_VARS=mono_cv_uscore=yes mono_cv_sizeof_sunpath=104 ac_cv_func_posix_getpwuid_r=yes ac_cv_func_finite=no ac_cv_c_bigendian=no ac_cv_header_sys_user_h=no ac_cv_header_curses_h=no ac_cv_header_localcharset_h=no ac_cv_func_getpwuid_r=no
 
-ARMV7_TARGET_CPPFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch armv7
+ARMV7_TARGET_CPPFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=$(IOS_MIN_VERSION) -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch armv7
 
-ARMV7_TARGET_CFLAGS=-O2 -gdwarf-2 -DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -fexceptions $(ARMV7_BITCODE_MARKER)
+ARMV7_TARGET_CFLAGS=-O2 -gdwarf-2 -DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=$(IOS_MIN_VERSION) -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -fexceptions $(ARMV7_BITCODE_MARKER)
 
-ARMV7_TARGET_CXXFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch armv7 -fexceptions $(ARMV7_BITCODE_MARKER)
+ARMV7_TARGET_CXXFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=$(IOS_MIN_VERSION) -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch armv7 -fexceptions $(ARMV7_BITCODE_MARKER)
 
 ARMV7_TARGET_LDFLAGS=-arch armv7 -framework CoreFoundation -lobjc -lc++ -Wl,-no_weak_imports
 
@@ -73,11 +74,11 @@ ARM64_CONFIGURE_FLAGS_I_DONT_CARE= --enable-llvm-runtime --with-bitcode=yes --en
 
 ARM64_AC_VARS=mono_cv_uscore=yes mono_cv_sizeof_sunpath=104 ac_cv_func_posix_getpwuid_r=yes ac_cv_func_finite=no ac_cv_c_bigendian=no ac_cv_header_sys_user_h=no ac_cv_header_curses_h=no ac_cv_header_localcharset_h=no ac_cv_func_getpwuid_r=no
 
-ARM64_TARGET_CPPFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch arm64
+ARM64_TARGET_CPPFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=$(IOS_MIN_VERSION) -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch arm64
 
-ARM64_TARGET_CFLAGS=-O2 -gdwarf-2 -DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -fexceptions $(ARM64_BITCODE_MARKER)
+ARM64_TARGET_CFLAGS=-O2 -gdwarf-2 -DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=$(IOS_MIN_VERSION) -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -fexceptions $(ARM64_BITCODE_MARKER)
 
-ARM64_TARGET_CXXFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=9.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch arm64 -fexceptions $(ARM64_BITCODE_MARKER)
+ARM64_TARGET_CXXFLAGS=-DSMALL_CONFIG -DDISABLE_POLICY_EVIDENCE=1 -DDISABLE_PROCESS_HANDLING=1 -D_XOPEN_SOURCE -DMONOTOUCH=1 -DHOST_IOS -DHAVE_LARGE_FILE_SUPPORT=1 -Wl,-application_extension -miphoneos-version-min=$(IOS_MIN_VERSION) -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/$(IPHONEOS_VERSION) -arch arm64 -fexceptions $(ARM64_BITCODE_MARKER)
 
 ARM64_TARGET_LDFLAGS=-arch arm64 -framework CoreFoundation -lobjc -lc++ -Wl,-no_weak_imports
 

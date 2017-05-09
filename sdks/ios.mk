@@ -253,6 +253,7 @@ CROSS_CONFIGURE_FLAGS= \
 	--with-glib=embedded \
 	--enable-minimal=com,remoting \
 	--disable-mcs-build \
+	--enable-interpreter \
 	--enable-icall-symbol-map \
 	--disable-nls \
 	--disable-iconv \
@@ -327,8 +328,8 @@ offsets-ios-cross32: ios-cross32/arm-apple-darwin10.h
 
 ios-cross64/aarch64-apple-darwin10.h: .stamp-configure-ios-arm64 $(MONO_SOURCE_PATH)/tools/offsets-tool/MonoAotOffsetsDumper.exe
 	mkdir -p ios-cross64 &&	\
-	MONO_PATH=$(MONO_SOURCE_PATH)/tools/offsets-tool/CppSharp/osx_32 \
-	mono --arch=32 --debug $(MONO_SOURCE_PATH)/tools/offsets-tool/MonoAotOffsetsDumper.exe \
+	MONO_PATH=$(MONO_SOURCE_PATH)/tools/offsets-tool/CppSharp/osx_64 \
+	mono --arch=64 --debug $(MONO_SOURCE_PATH)/tools/offsets-tool/MonoAotOffsetsDumper.exe \
 	--abi aarch64-apple-darwin10 --platform ios --out ios-cross64/ --mono $(MONO_SOURCE_PATH) --targetdir ios-arm64
 
 offsets-ios-cross64: ios-cross64/aarch64-apple-darwin10.h

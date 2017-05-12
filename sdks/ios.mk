@@ -129,7 +129,7 @@ configure:: .stamp-configure-ios-arm64
 
 
 SIM32_PLATFORM=iPhoneSimulator.platform
-IPHONESIM_VERSION=iPhoneSimulator10.3.sdk
+IPHONESIM_VERSION=iPhoneSimulator.sdk
 
 SIM32_CPPFLAGS=-arch i386 -O2 -DMONOTOUCH -DHOST_IOS -Wl,-application_extension -mios-simulator-version-min=6.0 -isysroot $(XCODE_DEVELOPER_ROOT)/Platforms/iPhoneSimulator.platform/Developer/SDKs/$(IPHONESIM_VERSION)
 
@@ -149,7 +149,6 @@ SIM32_CONFIGURE_FLAGS= \
 	--host=i386-apple-darwin10 \
 	$(SIM32_CONFIGURE_INSTALL_FLAGS) \
 	--enable-maintainer-mode \
-	--enable-interpreter \
 	--with-glib=embedded \
 	--without-ikvm-native \
 	--with-tls=pthread \
@@ -204,7 +203,6 @@ SIM64_CONFIGURE_FLAGS= \
 	--host=x86_64-apple-darwin10 \
 	$(SIM64_CONFIGURE_INSTALL_FLAGS) \
 	--enable-maintainer-mode \
-	--enable-interpreter \
 	--with-glib=embedded \
 	--without-ikvm-native \
 	--with-tls=pthread \
